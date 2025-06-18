@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lost Outdoors - MVP Map</title>
+  <link
+    href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
+    rel="stylesheet"
+  />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: sans-serif;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    .sidebar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 1;
+    }
+    .weather, .gear-list {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="sidebar">
+    <h3>Lost Outdoors</h3>
+    <div class="weather">Weather: <span id="weather"></span></div>
+    <div class="gear-list">
+      <h4>Gear Checklist</h4>
+      <ul>
+        <li><input type="checkbox" /> Tent</li>
+        <li><input type="checkbox" /> Sleeping Bag</li>
+        <li><input type="checkbox" /> Water Filter</li>
+        <li><input type="checkbox" /> Map / Compass</li>
+      </ul>
+    </div>
+  </div>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoibW1lYWRvcjE4NyIsImEiOiJjbWMyNzY0eXkwNWIyMmtxOGhrdndiNmwxIn0.ielEabL7E9CJEf5E9baQ4Q';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/outdoors-v12',
+      center: [-88.688, 37.5], // Horse Gap general area
+      zoom: 12
+    });
+
+    map.addControl(new mapboxgl.NavigationControl());
+    map.on('click', (e) => {
+      new mapboxgl.Marker()
+        .setLngLat(e.lngLat)
+        .addTo(map);
+    });
+
+    // Weather API integration
+    fetch('https://api.openweathermap.org/data/2.5/weather?lat=37.5&lon=-88.688&appid=374a4a81fc726009ff89323415d557e5&units=imperial')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('weather').innerText = `${data.weather[0].main}, ${data.main.temp.toFixed(0)}°F`;
+      });
+  </script>
+</body>
+</html>
