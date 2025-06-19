@@ -85,7 +85,7 @@ map.on('load', () => {
   id: 'trails-hiker',
   type: 'line',
   source: 'trails',
-  filter: ['in', 'type2', 
+  filter: ['in', 'Type2', 
     'Hiker Only Forest Service Trail',
     'Hiker/Equestrian Forest Service Trail',
     'Hiker/Mountain Bike Forest Service Trail'
@@ -100,7 +100,7 @@ map.on('load', () => {
   id: 'trails-horse',
   type: 'line',
   source: 'trails',
-  filter: ['in', ['get', 'type2'],
+  filter: ['in', ['get', 'Type2'],
     'Hiker/Equestrian Forest Service Trail'
   ],
   paint: {
