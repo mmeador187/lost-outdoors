@@ -35,6 +35,20 @@
       margin-top: 10px;
       font-size: 14px;
     }
+    .legend {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border-radius: 3px;
+}
   </style>
 </head>
 <body>
@@ -49,6 +63,14 @@
 <label><input type="checkbox" id="toggle-bike" checked> Bike Trails</label><br>
 <label><input type="checkbox" id="toggle-horse" checked> Horse Trails</label>
   </div>
+  <div class="legend">
+  <h4>Trail Legend</h4>
+  <div><span class="legend-color" style="background:#28a745"></span> Hiker Trail</div>
+  <div><span class="legend-color" style="background:#1E90FF"></span> Bike Trail</div>
+  <div><span class="legend-color" style="background:#996633"></span> Horse Trail</div>
+  <div><span class="legend-color" style="background:#DAA520"></span> County MVUM</div>
+  <div><span class="legend-color" style="background:#2E8B57"></span> Forest Service MVUM</div>
+</div>
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoibW1lYWRvcjE4NyIsImEiOiJjbWMyNzY0eXkwNWIyMmtxOGhrdndiNmwxIn0.ielEabL7E9CJEf5E9baQ4Q';
