@@ -162,7 +162,7 @@ paint: {
   document.getElementById('toggle-bikehorse').onchange = function(e) {
     map.setLayoutProperty('trails-bikehorse', 'visibility',
       e.target.checked ? 'visible' : 'none');
-  };
+  });
 
   document.getElementById('toggle-multi').onchange = function(e) {
     map.setLayoutProperty('trails-multi', 'visibility',
