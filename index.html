@@ -87,7 +87,7 @@ paint: {
     id: 'trails-bikehorse',
     type: 'line',
     source: 'trails',
-    filter: ['in', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail'],
+    filter: ['==', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail'],
     paint: {
       'line-color': '#007bff',
       'line-width': 2
