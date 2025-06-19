@@ -74,16 +74,6 @@ map.on('load', () => {
     data: '/data/TrailsGeoJson.json'
   });
 
-  map.addLayer({
-    id: 'trails-test',
-    type: 'line',
-    source: 'trails',
-    paint: {
-      'line-color': '#ff00ff',
-      'line-width': 3
-    }
-  });
-  
   // Hiking Trails
   map.addLayer({
     id: 'trails-hiking',
