@@ -120,6 +120,36 @@ paint: {
     }
   });
 
+  map.addSource('mvum', {
+    type: 'geojson',
+    data: '/data/MVUM.json'
+  });
+//MVUM Layer
+  map.addLayer({
+    id: 'mvum-layer',
+    type: 'line',
+    source: 'mvum',
+    paint: {
+      'line-color': '#00704A',
+      'line-width': 2
+    },
+    layout: {
+      visibility: 'none'
+    }
+  });
+
+  // Toggle logic
+  const checkbox = document.getElementById('toggle-mvum');
+  checkbox.addEventListener('change', function () {
+    const visibility = map.getLayoutProperty('mvum-layer', 'visibility');
+
+    if (visibility === 'visible') {
+      map.setLayoutProperty('mvum-layer', 'visibility', 'none');
+    } else {
+      map.setLayoutProperty('mvum-layer', 'visibility', 'visible');
+    }
+  });
+
     map.on('click', (e) => {
       new mapboxgl.Marker()
         .setLngLat(e.lngLat)
