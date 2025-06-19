@@ -43,7 +43,8 @@
     <h3>Lost Outdoors</h3>
     <div class="weather">Weather: <span id="weather"></span></div>
     <h4>Trail Layers</h4>
-<label><input type="checkbox" id="toggle-mvum" checked> Show MVUM Layer</label>
+<label><input type="checkbox" id="toggle-mvum-forest" checked> Forest Service Roads</label><br>
+<label><input type="checkbox" id="toggle-mvum-county" checked> County Roads</label><br>
 <label><input type="checkbox" id="toggle-hiker" checked> Hiker Trails</label><br>
 <label><input type="checkbox" id="toggle-bike" checked> Bike Trails</label><br>
 <label><input type="checkbox" id="toggle-horse" checked> Horse Trails</label>
@@ -124,28 +125,39 @@ map.on('load', () => {
 
 //MVUM Layer
   map.addLayer({
-    id: 'mvum-layer',
-    type: 'line',
-    source: 'mvum',
-    paint: {
-      'line-color': '#00704A',
-      'line-width': 2
-    },
-      layout: {
-  visibility: 'none' 
-    }
-  });
-const mvumCheckbox = document.getElementById('toggle-mvum');
-const isMVUMChecked = mvumCheckbox.checked;
-map.setLayoutProperty('mvum-layer', 'visibility', isMVUMChecked ? 'visible' : 'none');
+    id: 'mvum-forest-service',
+  type: 'line',
+  source: 'mvum',
+  filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'F'],
+  paint: {
+    'line-color': '#2E8B57', // forest green
+    'line-width': 3
+  },
+  layout: {
+    visibility: 'visible'
+  }
+});
+  map.addLayer({
+  id: 'mvum-county',
+  type: 'line',
+  source: 'mvum',
+  filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'C'], 'County'],
+  paint: {
+    'line-color': '#DAA520', // goldenrod
+    'line-width': 3
+  },
+  layout: {
+    visibility: 'visible'
+  }
+});
+  
+document.getElementById('toggle-mvum-forest').onchange = function(e) {
+  map.setLayoutProperty('mvum-forest-service', 'visibility', e.target.checked ? 'visible' : 'none');
+};
 
-  // Toggle logic
-  const checkbox = document.getElementById('toggle-mvum');
-  checkbox.addEventListener('change', function () {
-    const visible = checkbox.checked;
-    map.setLayoutProperty('mvum-layer', 'visibility', visible ? 'visible' : 'none');
-
-    });
+document.getElementById('toggle-mvum-county').onchange = function(e) {
+  map.setLayoutProperty('mvum-county', 'visibility', e.target.checked ? 'visible' : 'none');
+};
 document.getElementById('toggle-hiker').onchange = function(e) {
   map.setLayoutProperty('trails-hiker', 'visibility',
     e.target.checked ? 'visible' : 'none');
