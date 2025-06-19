@@ -146,6 +146,20 @@ map.setLayoutProperty('mvum-layer', 'visibility', isMVUMChecked ? 'visible' : 'n
     map.setLayoutProperty('mvum-layer', 'visibility', visible ? 'visible' : 'none');
 
     });
+document.getElementById('toggle-hiker').onchange = function(e) {
+  map.setLayoutProperty('trails-hiker', 'visibility',
+    e.target.checked ? 'visible' : 'none');
+};
+
+document.getElementById('toggle-bike').onchange = function(e) {
+  map.setLayoutProperty('trails-bike', 'visibility',
+    e.target.checked ? 'visible' : 'none');
+};
+
+document.getElementById('toggle-horse').onchange = function(e) {
+  map.setLayoutProperty('trails-horse', 'visibility',
+    e.target.checked ? 'visible' : 'none');
+};
   
 
     map.on('click', (e) => {
