@@ -142,7 +142,7 @@ paint: {
   const checkbox = document.getElementById('toggle-mvum');
   checkbox.addEventListener('change', function () {
     const visible = checkbox.checked;
-    map.getLayoutProperty('mvum-layer', 'visibility', visible ? 'visible' : 'none');
+    map.setLayoutProperty('mvum-layer', 'visibility', visible ? 'visible' : 'none');
 
     });
 
