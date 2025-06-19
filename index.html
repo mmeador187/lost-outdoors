@@ -87,7 +87,7 @@ paint: {
     id: 'trails-bikehorse',
     type: 'line',
     source: 'trails',
-    filter: ['in', ['get', 'Type2'], ["literal", ['Hiker/Mountain Bike Forest Service Trail', 'Hiker/Equestrian Forest Service Trail']],
+    filter: ['in', ['get', 'Type2'], ["literal", 'Hiker/Mountain Bike Forest Service Trail', 'Hiker/Equestrian Forest Service Trail']],
     paint: {
       'line-color': '#007bff',
       'line-width': 2
@@ -99,7 +99,7 @@ paint: {
     id: 'trails-multi',
     type: 'line',
     source: 'trails',
-    filter: ['==', ['get', 'Type2'], ["literal", ['Multi-Use Forest Service Trail']],
+    filter: ['==', ['get', 'Type2'], 'Multi-Use Forest Service Trail'],
     paint: {
       'line-color': '#ffc107',
       'line-width': 2
