@@ -43,9 +43,10 @@
     <h3>Lost Outdoors</h3>
     <div class="weather">Weather: <span id="weather"></span></div>
     <h4>Trail Layers</h4>
-<label><input type="checkbox" id="toggle-bikehorse" > Bike/Mountain Bike Trails</label><br>
-<label><input type="checkbox" id="toggle-multi" > Multi-Use Trails</label>
 <label><input type="checkbox" id="toggle-mvum" checked> Show MVUM Layer</label>
+<label><input type="checkbox" id="toggle-hiker" checked> Hiker Trails</label><br>
+<label><input type="checkbox" id="toggle-bike" checked> Bike Trails</label><br>
+<label><input type="checkbox" id="toggle-horse" checked> Horse Trails</label>
     <div class="gear-list">
       <h4>Gear Checklist</h4>
       <ul>
@@ -74,46 +75,53 @@ map.on('load', () => {
     data: '/data/TrailsGeoJson.json'
   });
 
+  map.addSource('mvum', {
+    type: 'geojson',
+    data: '/data/MVUM.json'
+  });
+
   // Hiking Trails
+ map.addLayer({
+  id: 'trails-hiker',
+  type: 'line',
+  source: 'trails',
+  filter: ['in', ['get', 'type2'], 
+    'Hiker Only Forest Service Trail',
+    'Hiker/Equestrian Forest Service Trail',
+    'Hiker/Mountain Bike Forest Service Trail'
+  ],
+  paint: {
+    'line-color': '#28a745', // green
+    'line-width': 3
+  }
+});
+  // Horse Trails
   map.addLayer({
-    id: 'trails-hiking',
-    type: 'line',
-    source: 'trails',
-  filter: ['==', ['get', 'Type2'], 'Hiker Only Forest Service Trail'],
-paint: {
-  'line-color': '#28a745',
-  'line-width': 2
+  id: 'trails-horse',
+  type: 'line',
+  source: 'trails',
+  filter: ['in', ['get', 'type2'],
+    'Hiker/Equestrian Forest Service Trail'
+  ],
+  paint: {
+    'line-color': '#a0522d', // brown
+    'line-width': 2,
+    'line-offset': -2 // Slight
     }
   });
 
-  // Bike + Horse Trails
+  //Mountain bike trails
   map.addLayer({
-    id: 'trails-bikehorse',
+    id: 'trails-bike',
     type: 'line',
     source: 'trails',
     filter: ['==', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail'],
-    paint: {
-      'line-color': '#007bff',
-      'line-width': 2
-    }
-  });
-
-  // Multi-Use Trails
-  map.addLayer({
-    id: 'trails-multi',
-    type: 'line',
-    source: 'trails',
-    filter: ['==', ['get', 'Type2'], 'Multi-Use Forest Service Trail'],
     paint: {
       'line-color': '#ffc107',
       'line-width': 2
     }
   });
 
-  map.addSource('mvum', {
-    type: 'geojson',
-    data: '/data/MVUM.json'
-  });
 //MVUM Layer
   map.addLayer({
     id: 'mvum-layer',
@@ -138,6 +146,7 @@ map.setLayoutProperty('mvum-layer', 'visibility', isMVUMChecked ? 'visible' : 'n
     map.setLayoutProperty('mvum-layer', 'visibility', visible ? 'visible' : 'none');
 
     });
+  
 
     map.on('click', (e) => {
       new mapboxgl.Marker()
@@ -152,15 +161,6 @@ map.setLayoutProperty('mvum-layer', 'visibility', isMVUMChecked ? 'visible' : 'n
         document.getElementById('weather').innerText = `${data.weather[0].main}, ${data.main.temp.toFixed(0)}°F`;
       });
    
-  document.getElementById('toggle-bikehorse').onchange = function(e) {
-    map.setLayoutProperty('trails-bikehorse', 'visibility',
-      e.target.checked ? 'visible' : 'none');
-  };
-
-  document.getElementById('toggle-multi').onchange = function(e) {
-    map.setLayoutProperty('trails-multi', 'visibility',
-      e.target.checked ? 'visible' : 'none');
-  };
 });
   </script>
 </body>
