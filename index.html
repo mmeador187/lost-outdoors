@@ -121,6 +121,16 @@ paint: {
       .then(data => {
         document.getElementById('weather').innerText = `${data.weather[0].main}, ${data.main.temp.toFixed(0)}°F`;
       });
+   
+  document.getElementById('toggle-bikehorse').onchange = function(e) {
+    map.setLayoutProperty('trails-bikehorse', 'visibility',
+      e.target.checked ? 'visible' : 'none');
+  };
+
+  document.getElementById('toggle-multi').onchange = function(e) {
+    map.setLayoutProperty('trails-multi', 'visibility',
+      e.target.checked ? 'visible' : 'none');
+  };
 });
   </script>
 </body>
