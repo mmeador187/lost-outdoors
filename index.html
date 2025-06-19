@@ -137,6 +137,9 @@ paint: {
   visibility: 'none' 
     }
   });
+const mvumCheckbox = document.getElementById('toggle-mvum');
+const isMVUMChecked = mvumCheckbox.checked;
+map.setLayoutProperty('mvum-layer', 'visibility', isMVUMChecked ? 'visible' : 'none');
 
   // Toggle logic
   const checkbox = document.getElementById('toggle-mvum');
