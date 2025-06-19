@@ -63,48 +63,48 @@
     });
 
     map.addControl(new mapboxgl.NavigationControl());
-    
-    map.on('load',() => {
-      map.addSource('trails', {
-  type: 'geojson',
-  data: '/data/TrailsGeoJson.json'
-});
 
-// Hiking Trails
-map.addLayer({
-  id: 'trails-hiking',
-  type: 'line',
-  source: 'trails',
-  filter: ['==', ['get', 'Type2'], 'Hiker Only Forest Service Trail'],
-  paint: {
-    'line-color': '#28a745',
-    'line-width': 2
-  }
-});
+map.on('load', () => {
+  map.addSource('trails', {
+    type: 'geojson',
+    data: '/data/TrailsGeoJson.json'
+  });
 
-// Bike + Horse Trails
-map.addLayer({
-  id: 'trails-bikehorse',
-  type: 'line',
-  source: 'trails',
-  filter: ['in', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail', 'Hiker/Equestrian Forest Service Trail'],
-  paint: {
-    'line-color': '#007bff',
-    'line-width': 2
-  }
-});
+  // Hiking Trails
+  map.addLayer({
+    id: 'trails-hiking',
+    type: 'line',
+    source: 'trails',
+    filter: ['==', ['get', 'Type2'], 'Hiker Only Forest Service Trail'],
+    paint: {
+      'line-color': '#28a745',
+      'line-width': 2
+    }
+  });
 
-// Multi-Use Trails
-map.addLayer({
-  id: 'trails-multi',
-  type: 'line',
-  source: 'trails',
-  filter: ['==', ['get', 'Type2'], 'Multi-Use Forest Service Trail'],
-  paint: {
-    'line-color': '#ffc107',
-    'line-width': 2
-  }
-});
+  // Bike + Horse Trails
+  map.addLayer({
+    id: 'trails-bikehorse',
+    type: 'line',
+    source: 'trails',
+    filter: ['in', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail', 'Hiker/Equestrian Forest Service Trail'],
+    paint: {
+      'line-color': '#007bff',
+      'line-width': 2
+    }
+  });
+
+  // Multi-Use Trails
+  map.addLayer({
+    id: 'trails-multi',
+    type: 'line',
+    source: 'trails',
+    filter: ['==', ['get', 'Type2'], 'Multi-Use Forest Service Trail'],
+    paint: {
+      'line-color': '#ffc107',
+      'line-width': 2
+    }
+  });
 
     map.on('click', (e) => {
       new mapboxgl.Marker()
