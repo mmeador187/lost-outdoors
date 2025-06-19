@@ -141,12 +141,9 @@ paint: {
   // Toggle logic
   const checkbox = document.getElementById('toggle-mvum');
   checkbox.addEventListener('change', function () {
-    const visibility = map.getLayoutProperty('mvum-layer', 'visibility');
+    const visible = checkbox.checked;
+    map.getLayoutProperty('mvum-layer', 'visibility', visible ? 'visible' : 'none');
 
-    if (visibility === 'visible') {
-      map.setLayoutProperty('mvum-layer', 'visibility', 'none');
-    } else {
-      map.setLayoutProperty('mvum-layer', 'visibility', 'visible');
     }
   });
 
