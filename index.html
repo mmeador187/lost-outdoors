@@ -75,10 +75,10 @@ map.on('load', () => {
     id: 'trails-hiking',
     type: 'line',
     source: 'trails',
-    filter: ['==', ['get', 'Type2'], ['Hiker Only Forest Service Trail'],
-    paint: {
-      'line-color': '#28a745',
-      'line-width': 2
+  filter: ['==', ['get', 'Type2'], 'Hiker Only Forest Service Trail'],
+paint: {
+  'line-color': '#28a745',
+  'line-width': 2
     }
   });
 
