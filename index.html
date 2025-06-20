@@ -103,11 +103,20 @@
         data: '/data/MVUM.json'
       });
       
-     // === "Find Me" Button ===
+    class LayersToggleControl {
+  onAdd(map) {
+    this._map = map;
+    this._container = document.createElement('div');
+    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+    this._container.style.display = 'flex';
+    this._container.style.flexDirection = 'column';
+    this._container.style.alignItems = 'center';
+
+    // === "Find Me" Button (on top) ===
     const findMeBtn = document.createElement('button');
     findMeBtn.id = 'findMeBtn';
     findMeBtn.title = 'Fly to My Location';
-    findMeBtn.style.marginTop = '8px';
+    findMeBtn.style.marginBottom = '8px';
     findMeBtn.style.border = 'none';
     findMeBtn.style.background = 'white';
     findMeBtn.style.padding = '6px 10px';
@@ -127,14 +136,19 @@
               zoom: 14,
               speed: 1.2
             });
-             },
-    class LayersToggleControl {
-  onAdd(map) {
-    this._map = map;
-    this._container = document.createElement('div');
-    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+          },
+          error => {
+            alert('Unable to retrieve your location.');
+            console.error('Geolocation error:', error);
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        alert('Geolocation is not supported by your browser.');
+      }
+    });
 
-    // === Layers Toggle Button ===
+    // === Layers Button (underneath) ===
     const layersButton = document.createElement('button');
     layersButton.id = 'layersToggle';
     layersButton.title = 'Toggle Layers Panel';
@@ -146,7 +160,7 @@
     layersButton.style.justifyContent = 'center';
 
     const icon = document.createElement('img');
-    icon.src = 'https://raw.githubusercontent.com/mmeador187/lost-outdoors/main/assets/layers.png'; // transparent image
+    icon.src = 'https://raw.githubusercontent.com/mmeador187/lost-outdoors/main/assets/layers.png';
     icon.alt = 'Layers';
     icon.style.width = '40px';
     icon.style.height = '40px';
@@ -163,20 +177,10 @@
         panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
       }
     });
-          error => {
-            alert('Unable to retrieve your location.');
-            console.error('Geolocation error:', error);
-          },
-          { enableHighAccuracy: true }
-        );
-      } else {
-        alert('Geolocation is not supported by your browser.');
-      }
-    });
 
-    // Add both buttons to control
-    this._container.appendChild(layersButton);
+    // Add both buttons to the control container (order matters)
     this._container.appendChild(findMeBtn);
+    this._container.appendChild(layersButton);
 
     return this._container;
   }
@@ -187,70 +191,8 @@
   }
 }
 
-// Add to map (outside the class)
+// Add the control to the bottom-left of the map
 map.addControl(new LayersToggleControl(), 'bottom-left');
-      
-      if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(
-    position => {
-      const { latitude, longitude } = position.coords;
-
-      const userLocation = [longitude, latitude];
-
-      // Center the map on the user
-      map.flyTo({
-        center: userLocation,
-        zoom: 14, // adjust zoom level if needed
-        speed: 1.2
-      });
-
-      // Optional: Add or update a marker
-      if (!map.getSource('user-location')) {
-        map.addSource('user-location', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: userLocation
-            }
-          }
-        });
-
-        map.addLayer({
-          id: 'user-location',
-          type: 'circle',
-          source: 'user-location',
-          paint: {
-            'circle-radius': 6,
-            'circle-color': '#0074D9',
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#fff'
-          }
-        });
-      } else {
-        // Update the existing marker
-        map.getSource('user-location').setData({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: userLocation
-          }
-        });
-      }
-    },
-    error => {
-      console.error('Geolocation error:', error);
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 10000
-    }
-  );
-} else {
-  alert('Geolocation is not supported by your browser.');
-}
       
       map.addLayer({
         id: 'trails-hiker',
