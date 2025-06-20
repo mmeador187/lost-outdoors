@@ -106,6 +106,7 @@
         this.findMeBtn = document.createElement('button');
         this.findMeBtn.textContent = '📍 Find Me';
         this.findMeBtn.style.cssText = 'margin-bottom:8px;border:none;background:white;padding:6px 10px;border-radius:8px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.25);font-size:14px;';
+        
         this.findMeBtn.addEventListener('click', () => {
   if (!this.isFollowing) {
     if (navigator.geolocation) {
@@ -152,6 +153,8 @@
         err => {
           console.error('getCurrentPosition error:', err);
           alert('Could not get your location.');
+          this.isFollowing = false;
+          this.findMeBtn.textContent = '📍 Find Me';
         },
         { enableHighAccuracy: true }
       );
@@ -159,7 +162,7 @@
       alert('Geolocation is not supported by your browser.');
     }
   } else {
-    // Stop following
+    // Stop follow mode
     this.isFollowing = false;
     this.findMeBtn.textContent = '📍 Find Me';
 
