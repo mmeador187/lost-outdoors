@@ -104,88 +104,176 @@
         type: 'geojson',
         data: '/data/MVUM.json'
       });
+class LayersToggleControl {
+  onAdd(map) {
+    this._map = map;
+    this._container = document.createElement('div');
+    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+    this._container.style.display = 'flex';
+    this._container.style.flexDirection = 'column';
+    this._container.style.alignItems = 'center';
 
-      // LayersToggleControl with Find Me toggle button above Layers button
-      class LayersToggleControl {
-        onAdd(map) {
-          this._map = map;
-          this._container = document.createElement('div');
-          this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-          this._container.style.display = 'flex';
-          this._container.style.flexDirection = 'column';
-          this._container.style.alignItems = 'center';
+    this.isFollowing = false;
+    this.watchId = null;
 
-          // Track follow mode
-          this.isFollowing = false;
-          this.watchId = null;
+    // === "Find Me" Button ===
+    this.findMeBtn = document.createElement('button');
+    this.findMeBtn.id = 'findMeBtn';
+    this.findMeBtn.title = 'Fly to My Location';
+    this.findMeBtn.style.marginBottom = '8px';
+    this.findMeBtn.style.border = 'none';
+    this.findMeBtn.style.background = 'white';
+    this.findMeBtn.style.padding = '6px 10px';
+    this.findMeBtn.style.borderRadius = '8px';
+    this.findMeBtn.style.cursor = 'pointer';
+    this.findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    this.findMeBtn.style.fontSize = '14px';
+    this.findMeBtn.textContent = '📍 Find Me';
 
-          // "Find Me" toggle button
-          this.findMeBtn = document.createElement('button');
-          this.findMeBtn.id = 'findMeBtn';
-          this.findMeBtn.title = 'Fly to My Location';
-          this.findMeBtn.style.marginBottom = '8px';
-          this.findMeBtn.style.border = 'none';
-          this.findMeBtn.style.background = 'white';
-          this.findMeBtn.style.padding = '6px 10px';
-          this.findMeBtn.style.borderRadius = '8px';
-          this.findMeBtn.style.cursor = 'pointer';
-          this.findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-          this.findMeBtn.style.fontSize = '14px';
-          this.findMeBtn.textContent = '📍 Find Me';
-          this.findMeBtn.addEventListener('click', () => {
-  if (!this.isFollowing) {
-    if (navigator.geolocation) {
-      this.isFollowing = true;
-      this.findMeBtn.textContent = '🛑 Stop Follow';
+    this.findMeBtn.addEventListener('click', () => {
+      if (!this.isFollowing) {
+        if (navigator.geolocation) {
+          this.isFollowing = true;
+          this.findMeBtn.textContent = '🛑 Stop Follow';
 
-      // Get location once immediately
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const { latitude, longitude } = position.coords;
-          this._map.flyTo({
-            center: [longitude, latitude],
-            zoom: 18,
-            pitch: 60,
-            bearing: 90,
-            speed: 1.5,
-            essential: true
-          });
-          this.updateUserMarker([longitude, latitude]);
-
-          // Then start watching position continuously
-          this.watchId = navigator.geolocation.watchPosition(
-            pos => {
-              const { latitude, longitude } = pos.coords;
+          navigator.geolocation.getCurrentPosition(
+            position => {
+              const { latitude, longitude } = position.coords;
+              const coords = [longitude, latitude];
               this._map.flyTo({
-                center: [longitude, latitude],
+                center: coords,
                 zoom: 18,
                 pitch: 60,
                 bearing: 90,
                 speed: 1.5,
                 essential: true
               });
-              this.updateUserMarker([longitude, latitude]);
+              this.updateUserMarker(coords);
+
+              this.watchId = navigator.geolocation.watchPosition(
+                pos => {
+                  const coords = [pos.coords.longitude, pos.coords.latitude];
+                  this._map.flyTo({
+                    center: coords,
+                    zoom: 18,
+                    pitch: 60,
+                    bearing: 90,
+                    speed: 1.5,
+                    essential: true
+                  });
+                  this.updateUserMarker(coords);
+                },
+                err => {
+                  console.error('WatchPosition error:', err);
+                  alert('Unable to track your location.');
+                },
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+              );
             },
-            error => {
-              alert('Unable to retrieve your location.');
-              console.error('Geolocation error:', error);
+            err => {
+              console.error('getCurrentPosition error:', err);
+              alert('Could not get your location.');
             },
-            { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+            { enableHighAccuracy: true }
           );
-        },
-        error => {
-          alert('Unable to retrieve your location.');
-          console.error('Geolocation error:', error);
-        },
-        { enableHighAccuracy: true }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser.');
-    }
-  } else {
-    // ...stop follow code here...
+        } else {
+          alert('Geolocation is not supported by your browser.');
+        }
+      } else {
+        // Stop follow mode
+        this.isFollowing = false;
+        this.findMeBtn.textContent = '📍 Find Me';
+
+        if (this.watchId !== null) {
+          navigator.geolocation.clearWatch(this.watchId);
+          this.watchId = null;
+        }
+        this._map.easeTo({
+          pitch: 0,
+          bearing: 0,
+          zoom: 14
+        });
+      }
+    });
+
+    // === Layers Button ===
+    const layersButton = document.createElement('button');
+    layersButton.id = 'layersToggle';
+    layersButton.title = 'Toggle Layers Panel';
+    layersButton.style.border = 'none';
+    layersButton.style.background = 'transparent';
+    layersButton.style.padding = '0';
+    layersButton.style.display = 'flex';
+    layersButton.style.alignItems = 'center';
+    layersButton.style.justifyContent = 'center';
+
+    const icon = document.createElement('img');
+    icon.src = 'https://raw.githubusercontent.com/mmeador187/lost-outdoors/main/assets/layers.png';
+    icon.alt = 'Layers';
+    icon.style.width = '40px';
+    icon.style.height = '40px';
+    icon.style.borderRadius = '8px';
+    icon.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    icon.style.cursor = 'pointer';
+    icon.style.objectFit = 'contain';
+
+    layersButton.appendChild(icon);
+    layersButton.addEventListener('click', () => {
+      const panel = document.getElementById('layerPanel');
+      if (panel) {
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+      }
+    });
+
+    // Add buttons to container
+    this._container.appendChild(this.findMeBtn);
+    this._container.appendChild(layersButton);
+
+    return this._container;
   }
-});
+
+  onRemove() {
+    if (this.watchId !== null) {
+      navigator.geolocation.clearWatch(this.watchId);
+    }
+    this._container.parentNode.removeChild(this._container);
+    this._map = undefined;
+  }
+
+  updateUserMarker(coords) {
+    if (!this._map.getSource('user-location')) {
+      this._map.addSource('user-location', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: coords
+          }
+        }
+      });
+      this._map.addLayer({
+        id: 'user-location',
+        type: 'circle',
+        source: 'user-location',
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#0074D9',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#fff'
+        }
+      });
+    } else {
+      this._map.getSource('user-location').setData({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: coords
+        }
+      });
+    }
+  }
+}
             // Layers button
           const layersButton = document.createElement('button');
           layersButton.id = 'layersToggle';
