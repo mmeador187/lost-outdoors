@@ -71,7 +71,6 @@
       <div><span class="legend-color" style="background:#0000FF"></span> Forest Service MVUM</div>
     </div>
   </div>
-
   <div id="layerPanel">
     <label><input type="checkbox" id="toggle-hiker" checked> Hiker Trails</label><br>
     <label><input type="checkbox" id="toggle-bike" checked> Bike Trails</label><br>
@@ -87,339 +86,101 @@
       container: 'map',
       style: 'mapbox://styles/mapbox/outdoors-v12',
       center: [-88.688, 37.5],
-      zoom: 12,
-      pitch: 0,
-      bearing: 0
+      zoom: 12
     });
-
     map.addControl(new mapboxgl.NavigationControl());
 
-    map.on('load', () => {
-      map.addSource('trails', {
-        type: 'geojson',
-        data: '/data/TrailsGeoJson.json'
-      });
+    class LayersToggleControl {
+      onAdd(map) {
+        this._map = map;
+        this._container = document.createElement('div');
+        this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+        this._container.style.display = 'flex';
+        this._container.style.flexDirection = 'column';
+        this._container.style.alignItems = 'center';
 
-      map.addSource('mvum', {
-        type: 'geojson',
-        data: '/data/MVUM.json'
-      });
-class LayersToggleControl {
-  onAdd(map) {
-    this._map = map;
-    this._container = document.createElement('div');
-    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-    this._container.style.display = 'flex';
-    this._container.style.flexDirection = 'column';
-    this._container.style.alignItems = 'center';
-
-    this.isFollowing = false;
-    this.watchId = null;
-
-    // === "Find Me" Button ===
-    this.findMeBtn = document.createElement('button');
-    this.findMeBtn.id = 'findMeBtn';
-    this.findMeBtn.title = 'Fly to My Location';
-    this.findMeBtn.style.marginBottom = '8px';
-    this.findMeBtn.style.border = 'none';
-    this.findMeBtn.style.background = 'white';
-    this.findMeBtn.style.padding = '6px 10px';
-    this.findMeBtn.style.borderRadius = '8px';
-    this.findMeBtn.style.cursor = 'pointer';
-    this.findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-    this.findMeBtn.style.fontSize = '14px';
-    this.findMeBtn.textContent = '📍 Find Me';
-
-    this.findMeBtn.addEventListener('click', () => {
-      if (!this.isFollowing) {
-        if (navigator.geolocation) {
-          this.isFollowing = true;
-          this.findMeBtn.textContent = '🛑 Stop Follow';
-
-          navigator.geolocation.getCurrentPosition(
-            position => {
-              const { latitude, longitude } = position.coords;
-              const coords = [longitude, latitude];
-              this._map.flyTo({
-                center: coords,
-                zoom: 18,
-                pitch: 60,
-                bearing: 90,
-                speed: 1.5,
-                essential: true
-              });
-              this.updateUserMarker(coords);
-
-              this.watchId = navigator.geolocation.watchPosition(
-                pos => {
-                  const coords = [pos.coords.longitude, pos.coords.latitude];
-                  this._map.flyTo({
-                    center: coords,
-                    zoom: 18,
-                    pitch: 60,
-                    bearing: 90,
-                    speed: 1.5,
-                    essential: true
-                  });
-                  this.updateUserMarker(coords);
-                },
-                err => {
-                  console.error('WatchPosition error:', err);
-                  alert('Unable to track your location.');
-                },
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-              );
-            },
-            err => {
-              console.error('getCurrentPosition error:', err);
-              alert('Could not get your location.');
-            },
-            { enableHighAccuracy: true }
-          );
-        } else {
-          alert('Geolocation is not supported by your browser.');
-        }
-      } else {
-        // Stop follow mode
         this.isFollowing = false;
+        this.watchId = null;
+        this.userMarker = null;
+
+        this.findMeBtn = document.createElement('button');
         this.findMeBtn.textContent = '📍 Find Me';
+        this.findMeBtn.style.cssText = 'margin-bottom:8px;border:none;background:white;padding:6px 10px;border-radius:8px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.25);font-size:14px;';
 
-        if (this.watchId !== null) {
-          navigator.geolocation.clearWatch(this.watchId);
-          this.watchId = null;
-        }
-        this._map.easeTo({
-          pitch: 0,
-          bearing: 0,
-          zoom: 14
-        });
-      }
-    });
-
-    // === Layers Button ===
-    const layersButton = document.createElement('button');
-    layersButton.id = 'layersToggle';
-    layersButton.title = 'Toggle Layers Panel';
-    layersButton.style.border = 'none';
-    layersButton.style.background = 'transparent';
-    layersButton.style.padding = '0';
-    layersButton.style.display = 'flex';
-    layersButton.style.alignItems = 'center';
-    layersButton.style.justifyContent = 'center';
-
-    const icon = document.createElement('img');
-    icon.src = 'https://raw.githubusercontent.com/mmeador187/lost-outdoors/main/assets/layers.png';
-    icon.alt = 'Layers';
-    icon.style.width = '40px';
-    icon.style.height = '40px';
-    icon.style.borderRadius = '8px';
-    icon.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-    icon.style.cursor = 'pointer';
-    icon.style.objectFit = 'contain';
-
-    layersButton.appendChild(icon);
-    layersButton.addEventListener('click', () => {
-      const panel = document.getElementById('layerPanel');
-      if (panel) {
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-      }
-    });
-
-    // Add buttons to container
-    this._container.appendChild(this.findMeBtn);
-    this._container.appendChild(layersButton);
-
-    return this._container;
-  }
-
-  onRemove() {
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-    }
-    this._container.parentNode.removeChild(this._container);
-    this._map = undefined;
-  }
-
-  updateUserMarker(coords) {
-    if (!this._map.getSource('user-location')) {
-      this._map.addSource('user-location', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: coords
-          }
-        }
-      });
-      this._map.addLayer({
-        id: 'user-location',
-        type: 'circle',
-        source: 'user-location',
-        paint: {
-          'circle-radius': 6,
-          'circle-color': '#0074D9',
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff'
-        }
-      });
-    } else {
-      this._map.getSource('user-location').setData({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: coords
-        }
-      });
-    }
-  }
-}
-            // Layers button
-          const layersButton = document.createElement('button');
-          layersButton.id = 'layersToggle';
-          layersButton.title = 'Toggle Layers Panel';
-          layersButton.style.border = 'none';
-          layersButton.style.background = 'transparent';
-          layersButton.style.padding = '0';
-          layersButton.style.display = 'flex';
-          layersButton.style.alignItems = 'center';
-          layersButton.style.justifyContent = 'center';
-
-          const icon = document.createElement('img');
-          icon.src = 'https://raw.githubusercontent.com/mmeador187/lost-outdoors/main/assets/layers.png';
-          icon.alt = 'Layers';
-          icon.style.width = '40px';
-          icon.style.height = '40px';
-          icon.style.borderRadius = '8px';
-          icon.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-          icon.style.cursor = 'pointer';
-          icon.style.objectFit = 'contain';
-
-          layersButton.appendChild(icon);
-
-          layersButton.addEventListener('click', () => {
-            const panel = document.getElementById('layerPanel');
-            if (panel) {
-              panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-            }
-          });
-
-          this._container.appendChild(this.findMeBtn);
-          this._container.appendChild(layersButton);
-
-          // Add a marker variable
-          this.userMarker = null;
-
-          return this._container;
-        })
-
-        updateUserMarker(coords) {
-          if (!this.userMarker) {
-            this.userMarker = new mapboxgl.Marker({ color: '#0074D9' })
-              .setLngLat(coords)
-              .addTo(this._map);
+        this.findMeBtn.addEventListener('click', () => {
+          if (!this.isFollowing) {
+            this.isFollowing = true;
+            this.findMeBtn.textContent = '🛑 Stop Follow';
+            navigator.geolocation.getCurrentPosition(pos => {
+              const coords = [pos.coords.longitude, pos.coords.latitude];
+              this._map.flyTo({ center: coords, zoom: 18, pitch: 60, bearing: 90, speed: 1.5 });
+              this.updateUserMarker(coords);
+              this.watchId = navigator.geolocation.watchPosition(pos => {
+                const coords = [pos.coords.longitude, pos.coords.latitude];
+                this._map.flyTo({ center: coords, zoom: 18, pitch: 60, bearing: 90, speed: 1.5 });
+                this.updateUserMarker(coords);
+              });
+            });
           } else {
-            this.userMarker.setLngLat(coords);
-          }
-        }
-
-        onRemove() {
-          if (this.watchId !== null) {
+            this.isFollowing = false;
+            this.findMeBtn.textContent = '📍 Find Me';
             navigator.geolocation.clearWatch(this.watchId);
+            this.watchId = null;
+            this._map.easeTo({ pitch: 0, bearing: 0, zoom: 14 });
           }
-          if (this.userMarker) {
-            this.userMarker.remove();
-          }
-          this._container.parentNode.removeChild(this._container);
-          this._map = undefined;
-        }
+        });
 
+        const layersButton = document.createElement('button');
+        const icon = document.createElement('img');
+        icon.src = 'https://raw.githubusercontent.com/mmeador187/lost-outdoors/main/assets/layers.png';
+        icon.alt = 'Layers';
+        icon.style.cssText = 'width:40px;height:40px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.25);cursor:pointer;object-fit:contain;';
+        layersButton.appendChild(icon);
+        layersButton.style.cssText = 'border:none;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;';
+        layersButton.addEventListener('click', () => {
+          const panel = document.getElementById('layerPanel');
+          panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        });
+
+        this._container.appendChild(this.findMeBtn);
+        this._container.appendChild(layersButton);
+
+        return this._container;
+      }
+
+      updateUserMarker(coords) {
+        if (!this.userMarker) {
+          this.userMarker = new mapboxgl.Marker({ color: '#0074D9' }).setLngLat(coords).addTo(this._map);
+        } else {
+          this.userMarker.setLngLat(coords);
+        }
+      }
+
+      onRemove() {
+        if (this.watchId) navigator.geolocation.clearWatch(this.watchId);
+        if (this.userMarker) this.userMarker.remove();
+        this._container.parentNode.removeChild(this._container);
+        this._map = undefined;
+      }
+    }
+
+    map.on('load', () => {
       map.addControl(new LayersToggleControl(), 'bottom-left');
+      map.addSource('trails', { type: 'geojson', data: '/data/TrailsGeoJson.json' });
+      map.addSource('mvum', { type: 'geojson', data: '/data/MVUM.json' });
 
-      // Add your other layers here (hiker, bike, horse, mvum etc)
-      map.addLayer({
-        id: 'trails-hiker',
-        type: 'line',
-        source: 'trails',
-        filter: ['in', 'Type2', 
-          'Hiker Only Forest Service Trail',
-          'Hiker/Equestrian Forest Service Trail',
-          'Hiker/Mountain Bike Forest Service Trail'
-        ],
-        paint: {
-          'line-color': '#28a745',
-          'line-width': 3
-        }
-      });
+      map.addLayer({ id: 'trails-hiker', type: 'line', source: 'trails', filter: ['in', 'Type2', 'Hiker Only Forest Service Trail', 'Hiker/Equestrian Forest Service Trail', 'Hiker/Mountain Bike Forest Service Trail'], paint: { 'line-color': '#28a745', 'line-width': 3 } });
+      map.addLayer({ id: 'trails-horse', type: 'line', source: 'trails', filter: ['==', ['get', 'Type2'], 'Hiker/Equestrian Forest Service Trail'], paint: { 'line-color': '#a0522d', 'line-width': 2, 'line-offset': -2 } });
+      map.addLayer({ id: 'trails-bike', type: 'line', source: 'trails', filter: ['==', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail'], paint: { 'line-color': '#ffc107', 'line-width': 2 } });
+      map.addLayer({ id: 'mvum-forest-service', type: 'line', source: 'mvum', filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'F'], paint: { 'line-color': '#0000FF', 'line-width': 3 } });
+      map.addLayer({ id: 'mvum-county', type: 'line', source: 'mvum', filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'C'], paint: { 'line-color': '#DAA520', 'line-width': 3 } });
 
-      map.addLayer({
-        id: 'trails-horse',
-        type: 'line',
-        source: 'trails',
-        filter: ['in', ['get', 'Type2'], 'Hiker/Equestrian Forest Service Trail'],
-        paint: {
-          'line-color': '#a0522d',
-          'line-width': 2,
-          'line-offset': -2
-        }
-      });
+      document.getElementById('toggle-hiker').onchange = e => map.setLayoutProperty('trails-hiker', 'visibility', e.target.checked ? 'visible' : 'none');
+      document.getElementById('toggle-bike').onchange = e => map.setLayoutProperty('trails-bike', 'visibility', e.target.checked ? 'visible' : 'none');
+      document.getElementById('toggle-horse').onchange = e => map.setLayoutProperty('trails-horse', 'visibility', e.target.checked ? 'visible' : 'none');
+      document.getElementById('toggle-mvum-forest').onchange = e => map.setLayoutProperty('mvum-forest-service', 'visibility', e.target.checked ? 'visible' : 'none');
+      document.getElementById('toggle-mvum-county').onchange = e => map.setLayoutProperty('mvum-county', 'visibility', e.target.checked ? 'visible' : 'none');
 
-      map.addLayer({
-        id: 'trails-bike',
-        type: 'line',
-        source: 'trails',
-        filter: ['==', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail'],
-        paint: {
-          'line-color': '#ffc107',
-          'line-width': 2
-        }
-      });
-
-      map.addLayer({
-        id: 'mvum-forest-service',
-        type: 'line',
-        source: 'mvum',
-        filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'F'],
-        paint: {
-          'line-color': '#0000FF',
-          'line-width': 3
-        },
-        layout: {
-          visibility: 'visible'
-        }
-      });
-
-      map.addLayer({
-        id: 'mvum-county',
-        type: 'line',
-        source: 'mvum',
-        filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'C'],
-        paint: {
-          'line-color': '#DAA520',
-          'line-width': 3
-        },
-        layout: {
-          visibility: 'visible'
-        }
-      });
-
-      // Toggle controls for layers panel checkboxes
-      document.getElementById('toggle-mvum-forest').onchange = e =>
-        map.setLayoutProperty('mvum-forest-service', 'visibility', e.target.checked ? 'visible' : 'none');
-
-      document.getElementById('toggle-mvum-county').onchange = e =>
-        map.setLayoutProperty('mvum-county', 'visibility', e.target.checked ? 'visible' : 'none');
-
-      document.getElementById('toggle-hiker').onchange = e =>
-        map.setLayoutProperty('trails-hiker', 'visibility', e.target.checked ? 'visible' : 'none');
-
-      document.getElementById('toggle-bike').onchange = e =>
-        map.setLayoutProperty('trails-bike', 'visibility', e.target.checked ? 'visible' : 'none');
-
-      document.getElementById('toggle-horse').onchange = e =>
-        map.setLayoutProperty('trails-horse', 'visibility', e.target.checked ? 'visible' : 'none');
-
-      // Fetch weather info
       fetch('https://api.openweathermap.org/data/2.5/weather?lat=37.5&lon=-88.688&appid=374a4a81fc726009ff89323415d557e5&units=imperial')
         .then(res => res.json())
         .then(data => {
