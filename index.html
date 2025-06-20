@@ -102,12 +102,7 @@
         type: 'geojson',
         data: '/data/MVUM.json'
       });
-    class LayersToggleControl {
-  onAdd(map) {
-    this._map = map;
-    this._container = document.createElement('div');
-    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-
+      
      // === "Find Me" Button ===
     const findMeBtn = document.createElement('button');
     findMeBtn.id = 'findMeBtn';
@@ -132,6 +127,12 @@
               zoom: 14,
               speed: 1.2
             });
+    class LayersToggleControl {
+  onAdd(map) {
+    this._map = map;
+    this._container = document.createElement('div');
+    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+
     // === Layers Toggle Button ===
     const layersButton = document.createElement('button');
     layersButton.id = 'layersToggle';
