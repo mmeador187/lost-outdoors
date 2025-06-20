@@ -127,6 +127,7 @@
               zoom: 14,
               speed: 1.2
             });
+             },
     class LayersToggleControl {
   onAdd(map) {
     this._map = map;
@@ -162,7 +163,6 @@
         panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
       }
     });
-          },
           error => {
             alert('Unable to retrieve your location.');
             console.error('Geolocation error:', error);
