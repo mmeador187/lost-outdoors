@@ -108,6 +108,30 @@
     this._container = document.createElement('div');
     this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
 
+     // === "Find Me" Button ===
+    const findMeBtn = document.createElement('button');
+    findMeBtn.id = 'findMeBtn';
+    findMeBtn.title = 'Fly to My Location';
+    findMeBtn.style.marginTop = '8px';
+    findMeBtn.style.border = 'none';
+    findMeBtn.style.background = 'white';
+    findMeBtn.style.padding = '6px 10px';
+    findMeBtn.style.borderRadius = '8px';
+    findMeBtn.style.cursor = 'pointer';
+    findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    findMeBtn.style.fontSize = '14px';
+    findMeBtn.textContent = '📍 Find Me';
+
+    findMeBtn.addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            map.flyTo({
+              center: [longitude, latitude],
+              zoom: 14,
+              speed: 1.2
+            });
     // === Layers Toggle Button ===
     const layersButton = document.createElement('button');
     layersButton.id = 'layersToggle';
@@ -137,31 +161,6 @@
         panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
       }
     });
-
-    // === "Find Me" Button ===
-    const findMeBtn = document.createElement('button');
-    findMeBtn.id = 'findMeBtn';
-    findMeBtn.title = 'Fly to My Location';
-    findMeBtn.style.marginTop = '8px';
-    findMeBtn.style.border = 'none';
-    findMeBtn.style.background = 'white';
-    findMeBtn.style.padding = '6px 10px';
-    findMeBtn.style.borderRadius = '8px';
-    findMeBtn.style.cursor = 'pointer';
-    findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-    findMeBtn.style.fontSize = '14px';
-    findMeBtn.textContent = '📍 Find Me';
-
-    findMeBtn.addEventListener('click', () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            const { latitude, longitude } = position.coords;
-            map.flyTo({
-              center: [longitude, latitude],
-              zoom: 14,
-              speed: 1.2
-            });
           },
           error => {
             alert('Unable to retrieve your location.');
