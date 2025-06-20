@@ -102,63 +102,56 @@
         type: 'geojson',
         data: '/data/MVUM.json'
       });
-      
-   class LayersToggleControl {
+
+    class LayersToggleControl {
   onAdd(map) {
     this._map = map;
     this._container = document.createElement('div');
     this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+    this._container.style.display = 'flex';
+    this._container.style.flexDirection = 'column';
+    this._container.style.alignItems = 'center';
 
-    let watchId = null;
-    let isFollowing = false;
-
-    // Find Me Toggle Button
+    // === "Find Me" Button (on top) ===
     const findMeBtn = document.createElement('button');
     findMeBtn.id = 'findMeBtn';
-    findMeBtn.title = 'Toggle Follow Mode';
-    findMeBtn.textContent = '📍 Follow Off';
+    findMeBtn.title = 'Fly to My Location';
     findMeBtn.style.marginBottom = '8px';
+    findMeBtn.style.border = 'none';
+    findMeBtn.style.background = 'white';
+    findMeBtn.style.padding = '6px 10px';
+    findMeBtn.style.borderRadius = '8px';
     findMeBtn.style.cursor = 'pointer';
+    findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    findMeBtn.style.fontSize = '14px';
+    findMeBtn.textContent = '📍 Find Me';
 
     findMeBtn.addEventListener('click', () => {
-      if (isFollowing) {
-        // Turn off follow mode
-        if (watchId !== null) {
-          navigator.geolocation.clearWatch(watchId);
-          watchId = null;
-        }
-        findMeBtn.textContent = '📍 Follow Off';
-        isFollowing = false;
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            map.flyTo({
+              center: [longitude, latitude],
+              zoom: 18,
+              pitch: 60,
+              bearing: 90,
+              speed: 1.5,
+              essential: true
+            });
+          },
+          error => {
+            alert('Unable to retrieve your location.');
+            console.error('Geolocation error:', error);
+          },
+          { enableHighAccuracy: true }
+        );
       } else {
-        // Turn on follow mode
-        if (navigator.geolocation) {
-          watchId = navigator.geolocation.watchPosition(
-            position => {
-              const { latitude, longitude } = position.coords;
-              map.flyTo({
-                center: [longitude, latitude],
-                zoom: 16,
-                pitch: 60,
-                bearing: 90,
-                speed: 1.5,
-                essential: true
-              });
-            },
-            error => {
-              alert('Unable to retrieve your location.');
-              console.error(error);
-            },
-            { enableHighAccuracy: true }
-          );
-          findMeBtn.textContent = '📍 Follow On';
-          isFollowing = true;
-        } else {
-          alert('Geolocation not supported.');
-        }
+        alert('Geolocation is not supported by your browser.');
       }
     });
 
-    // Layers Toggle Button (your existing one)
+    // === Layers Button (underneath) ===
     const layersButton = document.createElement('button');
     layersButton.id = 'layersToggle';
     layersButton.title = 'Toggle Layers Panel';
@@ -180,6 +173,7 @@
     icon.style.objectFit = 'contain';
 
     layersButton.appendChild(icon);
+
     layersButton.addEventListener('click', () => {
       const panel = document.getElementById('layerPanel');
       if (panel) {
@@ -187,7 +181,7 @@
       }
     });
 
-    // Add buttons to container
+    // Add both buttons to the control container (order matters)
     this._container.appendChild(findMeBtn);
     this._container.appendChild(layersButton);
 
@@ -200,7 +194,26 @@
   }
 }
 
+// Add the control to the bottom-left of the map
 map.addControl(new LayersToggleControl(), 'bottom-left');
+
+   if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(
+    position => {
+      const { latitude, longitude } = position.coords;
+      const userLocation = [longitude, latitude];
+
+      if (!map.getSource('user-location')) {
+        map.addSource('user-location', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: userLocation
+            }
+          }
+        });
 
         map.addLayer({
           id: 'user-location',
@@ -322,7 +335,7 @@ map.addControl(new LayersToggleControl(), 'bottom-left');
       });
 
       // Weather API
-      fetch('https://api.openweathermap.org/data/2.5/weather?lat=37.5&lon=-88.688&appid=374a4a81fc726009ff89323415d557e5&units=imperial')
+      fetch('https://api.openweathermap.org/data/2.5/weather?lat=37.5&lon=-88.688&appid=374a4a81fc726009ff89323415d557e5&units=imperial')More actions
         .then(res => res.json())
         .then(data => {
           document.getElementById('weather').innerText = `${data.weather[0].main}, ${data.main.temp.toFixed(0)}°F`;
