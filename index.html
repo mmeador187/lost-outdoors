@@ -281,14 +281,7 @@ document.getElementById('toggle-horse').onchange = function(e) {
       .then(data => {
         document.getElementById('weather').innerText = `${data.weather[0].main}, ${data.main.temp.toFixed(0)}°F`;
       });
-//toggle panel + layer visibility
-  const toggleBtn = document.getElementById('layersToggle');
-  const panel = document.getElementById('layerPanel');
 
-  toggleBtn.addEventListener('click', () => {
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-  });
-  });
   </script>
   </script>
 </body>
