@@ -151,6 +151,49 @@
 
       map.addControl(new LayersToggleControl(), 'bottom-left');
 
+      // --- Inside your LayersToggleControl onAdd(map) method:
+
+// Create "Find Me" button
+const findMeBtn = document.createElement('button');
+findMeBtn.id = 'findMeBtn';
+findMeBtn.title = 'Fly to My Location';
+findMeBtn.style.marginTop = '8px';
+findMeBtn.style.border = 'none';
+findMeBtn.style.background = 'white';
+findMeBtn.style.padding = '6px 10px';
+findMeBtn.style.borderRadius = '8px';
+findMeBtn.style.cursor = 'pointer';
+findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+findMeBtn.style.fontSize = '14px';
+findMeBtn.textContent = '📍 Find Me';
+
+// Add click event
+findMeBtn.addEventListener('click', () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+        map.flyTo({
+          center: [longitude, latitude],
+          zoom: 14,
+          speed: 1.2
+        });
+      },
+      error => {
+        alert('Unable to retrieve your location.');
+        console.error('Geolocation error:', error);
+      },
+      { enableHighAccuracy: true }
+    );
+  } else {
+    alert('Geolocation is not supported by your browser.');
+  }
+});
+
+// Append both buttons to the control container
+this._container.appendChild(this._button);  // Layers icon button
+this._container.appendChild(findMeBtn);     // 📍 Find Me button
+      
       if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
     position => {
