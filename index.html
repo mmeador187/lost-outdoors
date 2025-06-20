@@ -106,29 +106,75 @@
         this.findMeBtn = document.createElement('button');
         this.findMeBtn.textContent = '📍 Find Me';
         this.findMeBtn.style.cssText = 'margin-bottom:8px;border:none;background:white;padding:6px 10px;border-radius:8px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.25);font-size:14px;';
-
         this.findMeBtn.addEventListener('click', () => {
-          if (!this.isFollowing) {
-            this.isFollowing = true;
-            this.findMeBtn.textContent = '🛑 Stop Follow';
-            navigator.geolocation.getCurrentPosition(pos => {
+  if (!this.isFollowing) {
+    if (navigator.geolocation) {
+      this.isFollowing = true;
+      this.findMeBtn.textContent = '🛑 Stop Follow';
+
+      // Get location immediately
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const coords = [position.coords.longitude, position.coords.latitude];
+
+          this._map.flyTo({
+            center: coords,
+            zoom: 18,
+            pitch: 60,
+            bearing: 90,
+            speed: 1.5,
+            essential: true
+          });
+
+          this.updateUserMarker(coords);
+
+          // Then start watching position
+          this.watchId = navigator.geolocation.watchPosition(
+            pos => {
               const coords = [pos.coords.longitude, pos.coords.latitude];
-              this._map.flyTo({ center: coords, zoom: 18, pitch: 60, bearing: 90, speed: 1.5 });
-              this.updateUserMarker(coords);
-              this.watchId = navigator.geolocation.watchPosition(pos => {
-                const coords = [pos.coords.longitude, pos.coords.latitude];
-                this._map.flyTo({ center: coords, zoom: 18, pitch: 60, bearing: 90, speed: 1.5 });
-                this.updateUserMarker(coords);
+              this._map.flyTo({
+                center: coords,
+                zoom: 18,
+                pitch: 60,
+                bearing: 90,
+                speed: 1.5,
+                essential: true
               });
-            });
-          } else {
-            this.isFollowing = false;
-            this.findMeBtn.textContent = '📍 Find Me';
-            navigator.geolocation.clearWatch(this.watchId);
-            this.watchId = null;
-            this._map.easeTo({ pitch: 0, bearing: 0, zoom: 14 });
-          }
-        });
+              this.updateUserMarker(coords);
+            },
+            err => {
+              console.error('watchPosition error:', err);
+              alert('Unable to track your location.');
+            },
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+          );
+        },
+        err => {
+          console.error('getCurrentPosition error:', err);
+          alert('Could not get your location.');
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert('Geolocation is not supported by your browser.');
+    }
+  } else {
+    // Stop following
+    this.isFollowing = false;
+    this.findMeBtn.textContent = '📍 Find Me';
+
+    if (this.watchId !== null) {
+      navigator.geolocation.clearWatch(this.watchId);
+      this.watchId = null;
+    }
+
+    this._map.easeTo({
+      pitch: 0,
+      bearing: 0,
+      zoom: 14
+    });
+  }
+});
 
         const layersButton = document.createElement('button');
         const icon = document.createElement('img');
