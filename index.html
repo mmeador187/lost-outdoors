@@ -335,7 +335,7 @@ map.addControl(new LayersToggleControl(), 'bottom-left');
       });
 
       // Weather API
-      fetch('https://api.openweathermap.org/data/2.5/weather?lat=37.5&lon=-88.688&appid=374a4a81fc726009ff89323415d557e5&units=imperial')More actions
+      fetch('https://api.openweathermap.org/data/2.5/weather?lat=37.5&lon=-88.688&appid=374a4a81fc726009ff89323415d557e5&units=imperial')
         .then(res => res.json())
         .then(data => {
           document.getElementById('weather').innerText = `${data.weather[0].main}, ${data.main.temp.toFixed(0)}°F`;
