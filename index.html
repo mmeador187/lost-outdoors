@@ -266,7 +266,7 @@ document.getElementById('toggle-horse').onchange = function(e) {
       if (map.getLayer(layerId)) {
         map.setLayoutProperty(layerId, 'visibility', visible);
         document.querySelector(`.legend-${id}`).style.display = checkbox.checked ? 'block' : 'none';
-      };
+      }
     });
   });
   </script>
