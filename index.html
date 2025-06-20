@@ -102,97 +102,93 @@
         type: 'geojson',
         data: '/data/MVUM.json'
       });
+    class LayersToggleControl {
+  onAdd(map) {
+    this._map = map;
+    this._container = document.createElement('div');
+    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
 
-      class LayersToggleControl {
-        onAdd(map) {
-          this._map = map;
-          this._container = document.createElement('div');
-          this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+    // === Layers Toggle Button ===
+    const layersButton = document.createElement('button');
+    layersButton.id = 'layersToggle';
+    layersButton.title = 'Toggle Layers Panel';
+    layersButton.style.border = 'none';
+    layersButton.style.background = 'transparent';
+    layersButton.style.padding = '0';
+    layersButton.style.display = 'flex';
+    layersButton.style.alignItems = 'center';
+    layersButton.style.justifyContent = 'center';
 
-          this._button = document.createElement('button');
-          this._button.id = 'layersToggle';
-          this._button.title = 'Toggle Layers Panel';
-          this._button.style.border = 'none';
-          this._button.style.background = 'transparent';
-          this._button.style.padding = '0';
-          this._button.style.display = 'flex';
-          this._button.style.alignItems = 'center';
-          this._button.style.justifyContent = 'center';
+    const icon = document.createElement('img');
+    icon.src = 'https://raw.githubusercontent.com/mmeador187/lost-outdoors/main/assets/layers.png'; // transparent image
+    icon.alt = 'Layers';
+    icon.style.width = '40px';
+    icon.style.height = '40px';
+    icon.style.borderRadius = '8px';
+    icon.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    icon.style.cursor = 'pointer';
+    icon.style.objectFit = 'contain';
 
-          const icon = document.createElement('img');
-          icon.src = 'https://raw.githubusercontent.com/mmeador187/lost-outdoors/main/assets/layers.png';
-          icon.alt = 'Layers';
-          icon.style.width = '40px';
-          icon.style.height = '40px';
-          icon.style.borderRadius = '8px';
-          icon.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-          icon.style.cursor = 'pointer';
-          icon.style.objectfit = 'contain';
-          icon.style.background = 'transparent';
+    layersButton.appendChild(icon);
 
-          this._button.appendChild(icon);
-          this._container.appendChild(this._button); // ✅ This line was missing
-
-          this._button.addEventListener('click', () => {
-            const panel = document.getElementById('layerPanel');
-            if (panel) {
-              panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-            }
-          });
-
-          return this._container;
-        }
-
-        onRemove() {
-          this._container.parentNode.removeChild(this._container);
-          this._map = undefined;
-        }
+    layersButton.addEventListener('click', () => {
+      const panel = document.getElementById('layerPanel');
+      if (panel) {
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
       }
+    });
 
-      map.addControl(new LayersToggleControl(), 'bottom-left');
+    // === "Find Me" Button ===
+    const findMeBtn = document.createElement('button');
+    findMeBtn.id = 'findMeBtn';
+    findMeBtn.title = 'Fly to My Location';
+    findMeBtn.style.marginTop = '8px';
+    findMeBtn.style.border = 'none';
+    findMeBtn.style.background = 'white';
+    findMeBtn.style.padding = '6px 10px';
+    findMeBtn.style.borderRadius = '8px';
+    findMeBtn.style.cursor = 'pointer';
+    findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+    findMeBtn.style.fontSize = '14px';
+    findMeBtn.textContent = '📍 Find Me';
 
-      // --- Inside your LayersToggleControl onAdd(map) method:
+    findMeBtn.addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            map.flyTo({
+              center: [longitude, latitude],
+              zoom: 14,
+              speed: 1.2
+            });
+          },
+          error => {
+            alert('Unable to retrieve your location.');
+            console.error('Geolocation error:', error);
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        alert('Geolocation is not supported by your browser.');
+      }
+    });
 
-// Create "Find Me" button
-const findMeBtn = document.createElement('button');
-findMeBtn.id = 'findMeBtn';
-findMeBtn.title = 'Fly to My Location';
-findMeBtn.style.marginTop = '8px';
-findMeBtn.style.border = 'none';
-findMeBtn.style.background = 'white';
-findMeBtn.style.padding = '6px 10px';
-findMeBtn.style.borderRadius = '8px';
-findMeBtn.style.cursor = 'pointer';
-findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
-findMeBtn.style.fontSize = '14px';
-findMeBtn.textContent = '📍 Find Me';
+    // Add both buttons to control
+    this._container.appendChild(layersButton);
+    this._container.appendChild(findMeBtn);
 
-// Add click event
-findMeBtn.addEventListener('click', () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-        map.flyTo({
-          center: [longitude, latitude],
-          zoom: 14,
-          speed: 1.2
-        });
-      },
-      error => {
-        alert('Unable to retrieve your location.');
-        console.error('Geolocation error:', error);
-      },
-      { enableHighAccuracy: true }
-    );
-  } else {
-    alert('Geolocation is not supported by your browser.');
+    return this._container;
   }
-});
 
-// Append both buttons to the control container
-this._container.appendChild(this._button);  // Layers icon button
-this._container.appendChild(findMeBtn);     // 📍 Find Me button
+  onRemove() {
+    this._container.parentNode.removeChild(this._container);
+    this._map = undefined;
+  }
+}
+
+// Add to map (outside the class)
+map.addControl(new LayersToggleControl(), 'bottom-left');
       
       if (navigator.geolocation) {
   navigator.geolocation.watchPosition(
