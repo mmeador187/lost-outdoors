@@ -193,7 +193,56 @@
 
 // Add the control to the bottom-left of the map
 map.addControl(new LayersToggleControl(), 'bottom-left');
-      
+
+   if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(
+    position => {
+      const { latitude, longitude } = position.coords;
+      const userLocation = [longitude, latitude];
+
+      if (!map.getSource('user-location')) {
+        map.addSource('user-location', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: userLocation
+            }
+          }
+        });
+
+        map.addLayer({
+          id: 'user-location',
+          type: 'circle',
+          source: 'user-location',
+          paint: {
+            'circle-radius': 6,
+            'circle-color': '#0074D9',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff'
+          }
+        });
+      } else {
+        map.getSource('user-location').setData({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: userLocation
+          }
+        });
+      }
+    },
+    error => {
+      console.error('Geolocation error:', error);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
+    }
+  );
+}   
       map.addLayer({
         id: 'trails-hiker',
         type: 'line',
