@@ -142,14 +142,23 @@ map.on('load', () => {
     this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
     
     // Create your toggle button
-    this._button = document.createElement('button');
-    this._button.id = 'layersToggle';
-    this._button.textContent = 'Layers';
-    this._button.style.cursor = 'pointer';
-    this._button.title = 'Toggle Layers Panel';
-    
-    this._container.appendChild(this._button);
+   this._button = document.createElement('button');
+this._button.id = 'layersToggle';
+this._button.title = 'Toggle Layers Panel';
+this._button.style.border = 'none';
+this._button.style.background = 'transparent';
+this._button.style.padding = '0';
 
+const icon = document.createElement('img');
+icon.src = 'https://github.com/mmeador187/lost-outdoors/blob/main/assets/layers.png';
+icon.alt = 'Layers';
+icon.style.width = '40px';
+icon.style.height = '40px';
+icon.style.borderRadius = '8px';
+icon.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
+icon.style.cursor = 'pointer';
+
+this._button.appendChild(icon);
     // You can create your panel here or toggle an existing panel
     this._button.addEventListener('click', () => {
       const panel = document.getElementById('layerPanel');
