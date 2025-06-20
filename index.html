@@ -132,58 +132,61 @@
           this.findMeBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.25)';
           this.findMeBtn.style.fontSize = '14px';
           this.findMeBtn.textContent = '📍 Find Me';
-
           this.findMeBtn.addEventListener('click', () => {
-            if (!this.isFollowing) {
-              // Start following user location
-              if (navigator.geolocation) {
-                this.isFollowing = true;
-                this.findMeBtn.textContent = '🛑 Stop Follow';
+  if (!this.isFollowing) {
+    if (navigator.geolocation) {
+      this.isFollowing = true;
+      this.findMeBtn.textContent = '🛑 Stop Follow';
 
-                this.watchId = navigator.geolocation.watchPosition(
-                  position => {
-                    const { latitude, longitude } = position.coords;
-                    this._map.flyTo({
-                      center: [longitude, latitude],
-                      zoom: 18,
-                      pitch: 60,
-                      bearing: 90,
-                      speed: 1.5,
-                      essential: true
-                    });
-                    // Update user location marker
-                    this.updateUserMarker([longitude, latitude]);
-                  },
-                  error => {
-                    alert('Unable to retrieve your location.');
-                    console.error('Geolocation error:', error);
-                  },
-                  {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 10000
-                  }
-                );
-              } else {
-                alert('Geolocation is not supported by your browser.');
-              }
-            } else {
-              // Stop following user location and reset view
-              this.isFollowing = false;
-              this.findMeBtn.textContent = '📍 Find Me';
-              if (this.watchId !== null) {
-                navigator.geolocation.clearWatch(this.watchId);
-                this.watchId = null;
-              }
-              // Reset map view to default
+      // Get location once immediately
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude } = position.coords;
+          this._map.flyTo({
+            center: [longitude, latitude],
+            zoom: 18,
+            pitch: 60,
+            bearing: 90,
+            speed: 1.5,
+            essential: true
+          });
+          this.updateUserMarker([longitude, latitude]);
+
+          // Then start watching position continuously
+          this.watchId = navigator.geolocation.watchPosition(
+            pos => {
+              const { latitude, longitude } = pos.coords;
               this._map.flyTo({
-                center: [-88.688, 37.5],
-                zoom: 12,
-                pitch: 0,
-                bearing: 0,
-                speed: 1.2,
+                center: [longitude, latitude],
+                zoom: 18,
+                pitch: 60,
+                bearing: 90,
+                speed: 1.5,
                 essential: true
               });
+              this.updateUserMarker([longitude, latitude]);
+            },
+            error => {
+              alert('Unable to retrieve your location.');
+              console.error('Geolocation error:', error);
+            },
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+          );
+        },
+        error => {
+          alert('Unable to retrieve your location.');
+          console.error('Geolocation error:', error);
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert('Geolocation is not supported by your browser.');
+    }
+  } else {
+    // ...stop follow code here...
+  }
+});
+          
             }
           });
 
