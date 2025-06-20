@@ -244,65 +244,6 @@ document.getElementById('toggle-horse').onchange = function(e) {
     panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
   });
 
-  // Optional: Hide on map click
-  map.on('click', () => {
-    panel.style.display = 'none';
-  });
-
-  // Tie layer visibility + legend update
-  const layerMap = {
-    'toggle-hiker': 'trails-hiker',
-    'toggle-bike': 'trails-bike',
-    'toggle-horse': 'trails-horse',
-    'toggle-mvum-forest': 'mvum-forest',
-    'toggle-mvum-county': 'mvum-county'
-  };
-
-  Object.keys(layerMap).forEach(id => {
-    const checkbox = document.getElementById(id);
-    checkbox.addEventListener('change', () => {
-      const visible = checkbox.checked ? 'visible' : 'none';
-      const layerId = layerMap[id];
-      if (map.getLayer(layerId)) {
-        map.setLayoutProperty(layerId, 'visibility', visible);
-        document.querySelector(`.legend-${id}`).style.display = checkbox.checked ? 'block' : 'none';
-      }
-    });
-      // Create a custom control class
-class LayersToggleControl {
-  onAdd(map) {
-    this._map = map;
-    this._container = document.createElement('div');
-    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-    
-    // Create your toggle button
-    this._button = document.createElement('button');
-    this._button.id = 'layersToggle';
-    this._button.textContent = 'Layers';
-    this._button.style.cursor = 'pointer';
-    this._button.title = 'Toggle Layers Panel';
-    
-    this._container.appendChild(this._button);
-
-    // You can create your panel here or toggle an existing panel
-    this._button.addEventListener('click', () => {
-      const panel = document.getElementById('layerPanel');
-      if (panel) {
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-      }
-    });
-
-    return this._container;
-  }
-
-  onRemove() {
-    this._container.parentNode.removeChild(this._container);
-    this._map = undefined;
-  }
-}
-
-// Add the control to the map bottom-left
-map.addControl(new LayersToggleControl(), 'bottom-left');
     
   });
   </script>
