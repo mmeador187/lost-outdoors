@@ -123,8 +123,9 @@
 <div id="routePanel">
   <strong>Route Tool</strong><br>
   <div id="routeMiles">Miles: 0.0</div>
-  <button id="routeModeBtn">Start Route</button>
+  <button id="routeModeBtn">Add Waypoints: Off</button>
   <button id="clearRouteBtn">Clear Route</button>
+  <button id="calculateRouteBtn">Calculate Route</button>
 </div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -301,7 +302,7 @@ map.addLayer({
 
 document.getElementById('routeModeBtn').onclick = () => {
   routeMode = !routeMode;
-  document.getElementById('routeModeBtn').innerText = routeMode ? 'Stop Route' : 'Start Route';
+  document.getElementById('routeModeBtn').innerText = routeMode ? 'Add Waypoints: On' : 'Add Waypoints: Off';
 };
 
 document.getElementById('clearRouteBtn').onclick = () => {
