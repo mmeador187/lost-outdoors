@@ -28,6 +28,26 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       z-index: 1;
     }
+    .legend-row {
+  cursor: pointer;
+  user-select: none;
+  margin: 6px 0;
+}
+
+.legend-toggle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border-radius: 50%;
+  border: 2px solid var(--layer-color);
+  background: transparent;
+}
+
+.legend-toggle.on {
+  background: var(--layer-color);
+}
     .weather, .gear-list {
       margin-top: 10px;
       font-size: 14px;
@@ -76,25 +96,39 @@
 </head>
 <body>
   <div id="map"></div>
-  <div class="sidebar">
+<div class="sidebar">
     <h3>Lost Outdoors</h3>
     <div class="weather">Weather: <span id="weather"></span></div>
-    <div class="legend">
-      <h4>Trail Legend</h4>
-      <div><span class="legend-color" style="background:#28a745"></span> Hiker Trail</div>
-      <div><span class="legend-color" style="background:#1E90FF"></span> Bike Trail</div>
-      <div><span class="legend-color" style="background:#996633"></span> Horse Trail</div>
-      <div><span class="legend-color" style="background:#DAA520"></span> County MVUM</div>
-      <div><span class="legend-color" style="background:#0000FF"></span> Forest Service MVUM</div>
-    </div>
+
+<div class="legend">
+  <h4>Map Layers</h4>
+
+  <div class="legend-row" data-layer="trails-hiker">
+    <span class="legend-toggle on" style="--layer-color:#28a745"></span>
+    Hiker Trail
   </div>
-  <div id="layerPanel">
-    <label><input type="checkbox" id="toggle-hiker" checked> Hiker Trails</label><br>
-    <label><input type="checkbox" id="toggle-bike" checked> Bike Trails</label><br>
-    <label><input type="checkbox" id="toggle-horse" checked> Horse Trails</label><br>
-    <label><input type="checkbox" id="toggle-mvum-forest" checked> Forest Service Roads</label><br>
-    <label><input type="checkbox" id="toggle-mvum-county" checked> County Roads</label><br>
+
+  <div class="legend-row" data-layer="trails-bike">
+    <span class="legend-toggle on" style="--layer-color:#ffc107"></span>
+    Bike Trail
   </div>
+
+  <div class="legend-row" data-layer="trails-horse">
+    <span class="legend-toggle on" style="--layer-color:#a0522d"></span>
+    Horse Trail
+  </div>
+
+  <div class="legend-row" data-layer="mvum-county">
+    <span class="legend-toggle on" style="--layer-color:#DAA520"></span>
+    County MVUM
+  </div>
+
+  <div class="legend-row" data-layer="mvum-forest-service">
+    <span class="legend-toggle on" style="--layer-color:#0000FF"></span>
+    Forest Service MVUM
+  </div>
+</div>
+</div>
   
 <div id="routePanel">
   <strong>Route Tool</strong><br>
@@ -248,12 +282,23 @@
       map.addLayer({ id: 'mvum-forest-service', type: 'line', source: 'mvum', filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'F'], paint: { 'line-color': '#0000FF', 'line-width': 3 } });
       map.addLayer({ id: 'mvum-county', type: 'line', source: 'mvum', filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'C'], paint: { 'line-color': '#DAA520', 'line-width': 3 } });
 
-      document.getElementById('toggle-hiker').onchange = e => map.setLayoutProperty('trails-hiker', 'visibility', e.target.checked ? 'visible' : 'none');
-      document.getElementById('toggle-bike').onchange = e => map.setLayoutProperty('trails-bike', 'visibility', e.target.checked ? 'visible' : 'none');
-      document.getElementById('toggle-horse').onchange = e => map.setLayoutProperty('trails-horse', 'visibility', e.target.checked ? 'visible' : 'none');
-      document.getElementById('toggle-mvum-forest').onchange = e => map.setLayoutProperty('mvum-forest-service', 'visibility', e.target.checked ? 'visible' : 'none');
-      document.getElementById('toggle-mvum-county').onchange = e => map.setLayoutProperty('mvum-county', 'visibility', e.target.checked ? 'visible' : 'none');
+document.querySelectorAll('.legend-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const layerId = row.dataset.layer;
+    const toggle = row.querySelector('.legend-toggle');
 
+    const visibility = map.getLayoutProperty(layerId, 'visibility');
+
+    if (visibility === 'none') {
+      map.setLayoutProperty(layerId, 'visibility', 'visible');
+      toggle.classList.add('on');
+    } else {
+      map.setLayoutProperty(layerId, 'visibility', 'none');
+      toggle.classList.remove('on');
+    }
+  });
+});
+      
 let routeMode = false;
 let routePoints = [];
 let routeMarkers = [];
