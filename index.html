@@ -226,8 +226,10 @@
     });
   }
 });
-
-      updateUserMarker(coords) {
+    this._container.appendChild(this.findMeBtn);
+        return this._container;
+    }
+    updateUserMarker(coords) {
         if (!this.userMarker) {
           this.userMarker = new mapboxgl.Marker({ color: '#0074D9' }).setLngLat(coords).addTo(this._map);
         } else {
