@@ -55,6 +55,23 @@
       display: none;
       z-index: 10;
     }
+  
+  #routePanel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 10;
+  font-size: 14px;
+}
+
+#routePanel button {
+  margin-top: 6px;
+  width: 100%;
+}
   </style>
 </head>
 <body>
@@ -78,6 +95,13 @@
     <label><input type="checkbox" id="toggle-mvum-forest" checked> Forest Service Roads</label><br>
     <label><input type="checkbox" id="toggle-mvum-county" checked> County Roads</label><br>
   </div>
+  
+<div id="routePanel">
+  <strong>Route Tool</strong><br>
+  <div id="routeMiles">Miles: 0.0</div>
+  <button id="routeModeBtn">Start Route</button>
+  <button id="clearRouteBtn">Clear Route</button>
+</div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
@@ -230,6 +254,99 @@
       document.getElementById('toggle-mvum-forest').onchange = e => map.setLayoutProperty('mvum-forest-service', 'visibility', e.target.checked ? 'visible' : 'none');
       document.getElementById('toggle-mvum-county').onchange = e => map.setLayoutProperty('mvum-county', 'visibility', e.target.checked ? 'visible' : 'none');
 
+let routeMode = false;
+let routePoints = [];
+let routeMarkers = [];
+
+map.addSource('planned-route', {
+  type: 'geojson',
+  data: {
+    type: 'Feature',
+    geometry: {
+      type: 'LineString',
+      coordinates: []
+    }
+  }
+});
+
+map.addLayer({
+  id: 'planned-route-line',
+  type: 'line',
+  source: 'planned-route',
+  paint: {
+    'line-color': '#ff0000',
+    'line-width': 4,
+    'line-dasharray': [2, 2]
+  }
+});
+
+document.getElementById('routeModeBtn').onclick = () => {
+  routeMode = !routeMode;
+  document.getElementById('routeModeBtn').innerText = routeMode ? 'Stop Route' : 'Start Route';
+};
+
+document.getElementById('clearRouteBtn').onclick = () => {
+  routePoints = [];
+  routeMarkers.forEach(marker => marker.remove());
+  routeMarkers = [];
+  updateRouteLine();
+  updateRouteMiles();
+};
+
+map.on('click', (e) => {
+  if (!routeMode) return;
+
+  const point = [e.lngLat.lng, e.lngLat.lat];
+  routePoints.push(point);
+
+  const marker = new mapboxgl.Marker({ color: '#ff0000' })
+    .setLngLat(point)
+    .addTo(map);
+
+  routeMarkers.push(marker);
+
+  updateRouteLine();
+  updateRouteMiles();
+});
+
+function updateRouteLine() {
+  map.getSource('planned-route').setData({
+    type: 'Feature',
+    geometry: {
+      type: 'LineString',
+      coordinates: routePoints
+    }
+  });
+}
+
+function updateRouteMiles() {
+  let miles = 0;
+
+  for (let i = 1; i < routePoints.length; i++) {
+    miles += distanceInMiles(routePoints[i - 1], routePoints[i]);
+  }
+
+  document.getElementById('routeMiles').innerText = `Miles: ${miles.toFixed(1)}`;
+}
+
+function distanceInMiles(coord1, coord2) {
+  const R = 3958.8;
+  const lon1 = coord1[0] * Math.PI / 180;
+  const lat1 = coord1[1] * Math.PI / 180;
+  const lon2 = coord2[0] * Math.PI / 180;
+  const lat2 = coord2[1] * Math.PI / 180;
+
+  const dlon = lon2 - lon1;
+  const dlat = lat2 - lat1;
+
+  const a =
+    Math.sin(dlat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) *
+    Math.sin(dlon / 2) ** 2;
+
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+          
       fetch('https://api.openweathermap.org/data/2.5/weather?lat=37.5&lon=-88.688&appid=374a4a81fc726009ff89323415d557e5&units=imperial')
         .then(res => res.json())
         .then(data => {
