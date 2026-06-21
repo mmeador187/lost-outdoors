@@ -78,7 +78,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       z-index: 10;
       font-size: 14px;
-      min-width: 75px;
+      min-width: 185px;
     }
 
     #routePanel button {
@@ -119,55 +119,63 @@
 
   <div class="sidebar">
     <div class="panel-header" id="legendHeader">
-  <span>Lost Outdoors</span>
-  <span id="legendArrow">−</span>
-</div>
-
-<div class="panel-body" id="legendBody">
-  <div class="weather">Weather: <span id="weather"></span></div>
-  
-    <div class="legend">
-      <h4>Map Layers / Routing</h4>
-
-      <div class="legend-row" data-layer="trails-hiker" data-route-class="hiker-trail">
-        <span class="legend-toggle on" style="--layer-color:#28a745"></span>
-        Hiker Trail
-      </div>
-
-      <div class="legend-row" data-layer="trails-bike" data-route-class="bike-trail">
-        <span class="legend-toggle on" style="--layer-color:#ffc107"></span>
-        Bike Trail
-      </div>
-
-      <div class="legend-row" data-layer="trails-horse" data-route-class="horse-trail">
-        <span class="legend-toggle on" style="--layer-color:#a0522d"></span>
-        Horse Trail
-      </div>
-
-      <div class="legend-row" data-layer="mvum-county" data-route-class="county-mvum">
-        <span class="legend-toggle on" style="--layer-color:#DAA520"></span>
-        County MVUM
-      </div>
-
-      <div class="legend-row" data-layer="mvum-forest-service" data-route-class="forest">
-        <span class="legend-toggle on" style="--layer-color:#0000FF"></span>
-        Forest Service MVUM
-      </div>
+      <span>Lost Outdoors</span>
+      <span id="legendArrow">−</span>
     </div>
-</div>
 
-    <div class="small-note">
-      Visible layer toggles also control routing eligibility.
+    <div class="panel-body" id="legendBody">
+      <div class="weather">Weather: <span id="weather"></span></div>
+
+      <div class="legend">
+        <h4>Map Layers / Routing</h4>
+
+        <div class="legend-row" data-layer="trails-hiker" data-route-class="hiker-trail">
+          <span class="legend-toggle on" style="--layer-color:#28a745"></span>
+          Hiker Trail
+        </div>
+
+        <div class="legend-row" data-layer="trails-bike" data-route-class="bike-trail">
+          <span class="legend-toggle on" style="--layer-color:#ffc107"></span>
+          Bike Trail
+        </div>
+
+        <div class="legend-row" data-layer="trails-horse" data-route-class="horse-trail">
+          <span class="legend-toggle on" style="--layer-color:#a0522d"></span>
+          Horse Trail
+        </div>
+
+        <div class="legend-row" data-layer="mvum-county" data-route-class="county-mvum">
+          <span class="legend-toggle on" style="--layer-color:#DAA520"></span>
+          County MVUM
+        </div>
+
+        <div class="legend-row" data-layer="mvum-forest-service" data-route-class="forest">
+          <span class="legend-toggle on" style="--layer-color:#0000FF"></span>
+          Forest Service MVUM
+        </div>
+      </div>
+
+      <div class="small-note">
+        Visible layer toggles also control routing eligibility.
+      </div>
     </div>
   </div>
 
-  <div class="panel-header" id="legendHeader">
-  <span>Lost Outdoors</span>
-  <span id="legendArrow">−</span>
-</div>
+  <div id="routePanel">
+    <div class="panel-header" id="routeHeader">
+      <span>Route Tool</span>
+      <span id="routeArrow">−</span>
+    </div>
 
-<div class="panel-body" id="legendBody">
-  <div class="weather">Weather: <span id="weather"></span></div>
+    <div class="panel-body" id="routeBody">
+      <div id="routeMiles">Miles: 0.0</div>
+      <div id="waypointCount">Waypoints: 0</div>
+      <button id="routeModeBtn">Add Waypoints</button>
+      <button id="calculateRouteBtn">Calculate Route</button>
+      <button id="clearRouteBtn">Clear Route</button>
+      <div id="routeStatus">Loading map...</div>
+    </div>
+  </div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
