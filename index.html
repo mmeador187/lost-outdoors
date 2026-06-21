@@ -100,15 +100,32 @@
       color: #555;
       margin-top: 6px;
     }
+    .panel-header {
+  cursor: pointer;
+  user-select: none;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-body.collapsed {
+  display: none;
+}
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <div class="sidebar">
-    <h3>Lost Outdoors</h3>
-    <div class="weather">Weather: <span id="weather">Loading...</span></div>
+    <div class="panel-header" id="legendHeader">
+  <span>Lost Outdoors</span>
+  <span id="legendArrow">−</span>
+</div>
 
+<div class="panel-body" id="legendBody">
+  <div class="weather">Weather: <span id="weather"></span></div>
+  
     <div class="legend">
       <h4>Map Layers / Routing</h4>
 
@@ -137,21 +154,20 @@
         Forest Service MVUM
       </div>
     </div>
+</div>
 
     <div class="small-note">
       Visible layer toggles also control routing eligibility.
     </div>
   </div>
 
-  <div id="routePanel">
-    <strong>Route Tool</strong><br>
-    <div id="routeMiles">Miles: 0.0</div>
-    <div id="waypointCount">Waypoints: 0</div>
-    <button id="routeModeBtn">Add Waypoints</button>
-    <button id="calculateRouteBtn">Calculate Route</button>
-    <button id="clearRouteBtn">Clear Route</button>
-    <div id="routeStatus">Routing graph loading...</div>
-  </div>
+  <div class="panel-header" id="legendHeader">
+  <span>Lost Outdoors</span>
+  <span id="legendArrow">−</span>
+</div>
+
+<div class="panel-body" id="legendBody">
+  <div class="weather">Weather: <span id="weather"></span></div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
@@ -391,6 +407,22 @@
       document.getElementById('clearRouteBtn').onclick = () => {
         clearRoute();
       };
+
+      document.getElementById('legendHeader').onclick = () => {
+  const body = document.getElementById('legendBody');
+  const arrow = document.getElementById('legendArrow');
+
+  body.classList.toggle('collapsed');
+  arrow.innerText = body.classList.contains('collapsed') ? '+' : '−';
+};
+
+document.getElementById('routeHeader').onclick = () => {
+  const body = document.getElementById('routeBody');
+  const arrow = document.getElementById('routeArrow');
+
+  body.classList.toggle('collapsed');
+  arrow.innerText = body.classList.contains('collapsed') ? '+' : '−';
+};
 
       map.on('click', (e) => {
         if (!waypointMode) return;
