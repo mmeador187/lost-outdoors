@@ -734,10 +734,16 @@
         if (!currentNode) continue;
 
         for (const edge of currentNode.edges) {
-          if (!allowed[edge.roadType]) continue;
+  if (!allowed[edge.roadType]) continue;
 
-          const nextKey = edge.to;
-          if (visited.has(nextKey)) continue;
+  const nextKey = edge.to;
+  if (visited.has(nextKey)) continue;
+
+  const isDeadEnd = nodes[nextKey] && nodes[nextKey].edges.length === 1;
+
+  if (isDeadEnd && nextKey !== endKey) {
+    continue;
+  }
 
           const newDistance = distances[currentKey] + edge.cost;
 
