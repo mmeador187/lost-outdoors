@@ -250,12 +250,22 @@
       map.addControl(new LayersToggleControl(), 'bottom-left');
       map.addSource('trails', { type: 'geojson', data: '/data/TrailsGeoJson.json' });
       map.addSource('mvum', { type: 'geojson', data: '/data/MVUM.json' });
+      map.addSource('osm-salem', {type: 'geojson',  data: '/data/osm-salem-roads.geojson'});
 
       map.addLayer({ id: 'trails-hiker', type: 'line', source: 'trails', filter: ['in', 'Type2', 'Hiker Only Forest Service Trail', 'Hiker/Equestrian Forest Service Trail', 'Hiker/Mountain Bike Forest Service Trail'], paint: { 'line-color': '#28a745', 'line-width': 3 } });
       map.addLayer({ id: 'trails-horse', type: 'line', source: 'trails', filter: ['==', ['get', 'Type2'], 'Hiker/Equestrian Forest Service Trail'], paint: { 'line-color': '#a0522d', 'line-width': 2, 'line-offset': -2 } });
       map.addLayer({ id: 'trails-bike', type: 'line', source: 'trails', filter: ['==', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail'], paint: { 'line-color': '#ffc107', 'line-width': 2 } });
       map.addLayer({ id: 'mvum-forest-service', type: 'line', source: 'mvum', filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'F'], paint: { 'line-color': '#0000FF', 'line-width': 3 } });
       map.addLayer({ id: 'mvum-county', type: 'line', source: 'mvum', filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'C'], paint: { 'line-color': '#DAA520', 'line-width': 3 } });
+      map.addLayer({
+  id: 'osm-salem-test',
+  type: 'line',
+  source: 'osm-salem',
+  paint: {
+    'line-color': '#ff00ff',
+    'line-width': 1
+  }
+}); 
 
 document.querySelectorAll('.legend-row').forEach(row => {
   row.addEventListener('click', () => {
