@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lost Outdoors - MVP Map</title>
+  <title>Lost Outdoors - Routing MVP</title>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <style>
     body, html {
@@ -12,12 +12,14 @@
       height: 100%;
       font-family: sans-serif;
     }
+
     #map {
       position: absolute;
       top: 0;
       bottom: 0;
       width: 100%;
     }
+
     .sidebar {
       position: absolute;
       top: 10px;
@@ -26,120 +28,145 @@
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      z-index: 1;
+      z-index: 10;
+      max-width: 230px;
     }
-    .legend-row {
-  cursor: pointer;
-  user-select: none;
-  margin: 6px 0;
-}
 
-.legend-toggle {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  margin-right: 6px;
-  vertical-align: middle;
-  border-radius: 50%;
-  border: 2px solid var(--layer-color);
-  background: transparent;
-}
+    .sidebar h3 {
+      margin: 0 0 6px 0;
+    }
 
-.legend-toggle.on {
-  background: var(--layer-color);
-}
-    .weather, .gear-list {
+    .weather {
       margin-top: 10px;
       font-size: 14px;
     }
+
     .legend {
       margin-top: 10px;
       font-size: 13px;
       line-height: 1.4;
     }
-    .legend-color {
+
+    .legend-row {
+      cursor: pointer;
+      user-select: none;
+      margin: 6px 0;
+    }
+
+    .legend-toggle {
       display: inline-block;
       width: 14px;
       height: 14px;
       margin-right: 6px;
       vertical-align: middle;
-      border-radius: 3px;
+      border-radius: 50%;
+      border: 2px solid var(--layer-color);
+      background: transparent;
     }
-     
-  #routePanel {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: white;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  z-index: 10;
-  font-size: 14px;
-}
 
-#routePanel button {
-  margin-top: 6px;
-  width: 100%;
-}
+    .legend-toggle.on {
+      background: var(--layer-color);
+    }
+
+    #routePanel {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 10;
+      font-size: 14px;
+      min-width: 175px;
+    }
+
+    #routePanel button {
+      margin-top: 6px;
+      width: 100%;
+      padding: 6px;
+      cursor: pointer;
+    }
+
+    #routeStatus {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.35;
+      color: #333;
+    }
+
+    .small-note {
+      font-size: 11px;
+      color: #555;
+      margin-top: 6px;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
-<div class="sidebar">
+
+  <div class="sidebar">
     <h3>Lost Outdoors</h3>
-    <div class="weather">Weather: <span id="weather"></span></div>
+    <div class="weather">Weather: <span id="weather">Loading...</span></div>
 
-<div class="legend">
-  <h4>Map Layers</h4>
+    <div class="legend">
+      <h4>Map Layers / Routing</h4>
 
-  <div class="legend-row" data-layer="trails-hiker">
-    <span class="legend-toggle on" style="--layer-color:#28a745"></span>
-    Hiker Trail
+      <div class="legend-row" data-layer="trails-hiker" data-route-class="hiker-trail">
+        <span class="legend-toggle on" style="--layer-color:#28a745"></span>
+        Hiker Trail
+      </div>
+
+      <div class="legend-row" data-layer="trails-bike" data-route-class="bike-trail">
+        <span class="legend-toggle on" style="--layer-color:#ffc107"></span>
+        Bike Trail
+      </div>
+
+      <div class="legend-row" data-layer="trails-horse" data-route-class="horse-trail">
+        <span class="legend-toggle on" style="--layer-color:#a0522d"></span>
+        Horse Trail
+      </div>
+
+      <div class="legend-row" data-layer="mvum-county" data-route-class="county-mvum">
+        <span class="legend-toggle on" style="--layer-color:#DAA520"></span>
+        County MVUM
+      </div>
+
+      <div class="legend-row" data-layer="mvum-forest-service" data-route-class="forest">
+        <span class="legend-toggle on" style="--layer-color:#0000FF"></span>
+        Forest Service MVUM
+      </div>
+    </div>
+
+    <div class="small-note">
+      Visible layer toggles also control routing eligibility.
+    </div>
   </div>
 
-  <div class="legend-row" data-layer="trails-bike">
-    <span class="legend-toggle on" style="--layer-color:#ffc107"></span>
-    Bike Trail
+  <div id="routePanel">
+    <strong>Route Tool</strong><br>
+    <div id="routeMiles">Miles: 0.0</div>
+    <div id="waypointCount">Waypoints: 0</div>
+    <button id="routeModeBtn">Add Waypoints</button>
+    <button id="calculateRouteBtn">Calculate Route</button>
+    <button id="clearRouteBtn">Clear Route</button>
+    <div id="routeStatus">Routing graph loading...</div>
   </div>
-
-  <div class="legend-row" data-layer="trails-horse">
-    <span class="legend-toggle on" style="--layer-color:#a0522d"></span>
-    Horse Trail
-  </div>
-
-  <div class="legend-row" data-layer="mvum-county">
-    <span class="legend-toggle on" style="--layer-color:#DAA520"></span>
-    County MVUM
-  </div>
-
-  <div class="legend-row" data-layer="mvum-forest-service">
-    <span class="legend-toggle on" style="--layer-color:#0000FF"></span>
-    Forest Service MVUM
-  </div>
-</div>
-</div>
-  
-<div id="routePanel">
-  <strong>Route Tool</strong><br>
-  <div id="routeMiles">Miles: 0.0</div>
-  <button id="routeModeBtn">Add Waypoints: Off</button>
-  <button id="clearRouteBtn">Clear Route</button>
-  <button id="calculateRouteBtn">Calculate Route</button>
-</div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoibW1lYWRvcjE4NyIsImEiOiJjbWMyNzY0eXkwNWIyMmtxOGhrdndiNmwxIn0.ielEabL7E9CJEf5E9baQ4Q';
+
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/outdoors-v12',
       center: [-88.688, 37.5],
       zoom: 12
     });
+
     map.addControl(new mapboxgl.NavigationControl());
 
-    class LayersToggleControl {
+    class FindMeControl {
       onAdd(map) {
         this._map = map;
         this._container = document.createElement('div');
@@ -155,82 +182,81 @@
         this.findMeBtn = document.createElement('button');
         this.findMeBtn.textContent = '📍 Find Me';
         this.findMeBtn.style.cssText = 'margin-bottom:8px;border:none;background:white;padding:6px 10px;border-radius:8px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.25);font-size:14px;';
-        
+
         this.findMeBtn.addEventListener('click', () => {
-  if (!this.isFollowing) {
-    if (navigator.geolocation) {
-      this.isFollowing = true;
-      this.findMeBtn.textContent = '🛑 Stop Follow';
+          if (!this.isFollowing) {
+            if (navigator.geolocation) {
+              this.isFollowing = true;
+              this.findMeBtn.textContent = '🛑 Stop Follow';
 
-      // Get location immediately
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const coords = [position.coords.longitude, position.coords.latitude];
+              navigator.geolocation.getCurrentPosition(
+                position => {
+                  const coords = [position.coords.longitude, position.coords.latitude];
 
-          this._map.flyTo({
-            center: coords,
-            zoom: 18,
-            pitch: 60,
-            bearing: 90,
-            speed: 1.5,
-            essential: true
-          });
+                  this._map.flyTo({
+                    center: coords,
+                    zoom: 18,
+                    pitch: 60,
+                    bearing: 90,
+                    speed: 1.5,
+                    essential: true
+                  });
 
-          this.updateUserMarker(coords);
+                  this.updateUserMarker(coords);
 
-          // Then start watching position
-          this.watchId = navigator.geolocation.watchPosition(
-            pos => {
-              const coords = [pos.coords.longitude, pos.coords.latitude];
-              this._map.flyTo({
-                center: coords,
-                zoom: 18,
-                pitch: 60,
-                bearing: 90,
-                speed: 1.5,
-                essential: true
-              });
-              this.updateUserMarker(coords);
-            },
-            err => {
-              console.error('watchPosition error:', err);
-              alert('Unable to track your location.');
-            },
-            { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-          );
-        },
-        err => {
-          console.error('getCurrentPosition error:', err);
-          alert('Could not get your location.');
-          this.isFollowing = false;
-          this.findMeBtn.textContent = '📍 Find Me';
-        },
-        { enableHighAccuracy: true }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser.');
-    }
-  } else {
-    // Stop follow mode
-    this.isFollowing = false;
-    this.findMeBtn.textContent = '📍 Find Me';
+                  this.watchId = navigator.geolocation.watchPosition(
+                    pos => {
+                      const coords = [pos.coords.longitude, pos.coords.latitude];
+                      this._map.flyTo({
+                        center: coords,
+                        zoom: 18,
+                        pitch: 60,
+                        bearing: 90,
+                        speed: 1.5,
+                        essential: true
+                      });
+                      this.updateUserMarker(coords);
+                    },
+                    err => {
+                      console.error('watchPosition error:', err);
+                      alert('Unable to track your location.');
+                    },
+                    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+                  );
+                },
+                err => {
+                  console.error('getCurrentPosition error:', err);
+                  alert('Could not get your location.');
+                  this.isFollowing = false;
+                  this.findMeBtn.textContent = '📍 Find Me';
+                },
+                { enableHighAccuracy: true }
+              );
+            } else {
+              alert('Geolocation is not supported by your browser.');
+            }
+          } else {
+            this.isFollowing = false;
+            this.findMeBtn.textContent = '📍 Find Me';
 
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-      this.watchId = null;
-    }
+            if (this.watchId !== null) {
+              navigator.geolocation.clearWatch(this.watchId);
+              this.watchId = null;
+            }
 
-    this._map.easeTo({
-      pitch: 0,
-      bearing: 0,
-      zoom: 14
-    });
-  }
-});
-    this._container.appendChild(this.findMeBtn);
+            this._map.easeTo({
+              pitch: 0,
+              bearing: 0,
+              zoom: 14
+            });
+          }
+        });
+
+        this._container.appendChild(this.findMeBtn);
         return this._container;
-    }
-    updateUserMarker(coords) {
+      }
+
+      updateUserMarker(coords) {
         if (!this.userMarker) {
           this.userMarker = new mapboxgl.Marker({ color: '#0074D9' }).setLngLat(coords).addTo(this._map);
         } else {
@@ -246,143 +272,646 @@
       }
     }
 
-    map.on('load', () => {
-      map.addControl(new LayersToggleControl(), 'bottom-left');
+    let waypointMode = false;
+    let waypoints = [];
+    let waypointMarkers = [];
+    let routingGraph = null;
+    let graphStats = null;
+
+    const routeStatusEl = document.getElementById('routeStatus');
+    const routeMilesEl = document.getElementById('routeMiles');
+    const waypointCountEl = document.getElementById('waypointCount');
+
+    map.on('load', async () => {
+      map.addControl(new FindMeControl(), 'bottom-left');
+
       map.addSource('trails', { type: 'geojson', data: '/data/TrailsGeoJson.json' });
       map.addSource('mvum', { type: 'geojson', data: '/data/MVUM.json' });
-      map.addSource('osm-salem', {type: 'geojson',  data: '/data/osm-salem-roads.geojson'});
 
-      map.addLayer({ id: 'trails-hiker', type: 'line', source: 'trails', filter: ['in', 'Type2', 'Hiker Only Forest Service Trail', 'Hiker/Equestrian Forest Service Trail', 'Hiker/Mountain Bike Forest Service Trail'], paint: { 'line-color': '#28a745', 'line-width': 3 } });
-      map.addLayer({ id: 'trails-horse', type: 'line', source: 'trails', filter: ['==', ['get', 'Type2'], 'Hiker/Equestrian Forest Service Trail'], paint: { 'line-color': '#a0522d', 'line-width': 2, 'line-offset': -2 } });
-      map.addLayer({ id: 'trails-bike', type: 'line', source: 'trails', filter: ['==', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail'], paint: { 'line-color': '#ffc107', 'line-width': 2 } });
-      map.addLayer({ id: 'mvum-forest-service', type: 'line', source: 'mvum', filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'F'], paint: { 'line-color': '#0000FF', 'line-width': 3 } });
-      map.addLayer({ id: 'mvum-county', type: 'line', source: 'mvum', filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'C'], paint: { 'line-color': '#DAA520', 'line-width': 3 } });
       map.addLayer({
-  id: 'osm-salem-test',
-  type: 'line',
-  source: 'osm-salem',
-  paint: {
-    'line-color': '#ff00ff',
-    'line-width': 1
-  }
-}); 
+        id: 'trails-hiker',
+        type: 'line',
+        source: 'trails',
+        filter: ['in', 'Type2', 'Hiker Only Forest Service Trail', 'Hiker/Equestrian Forest Service Trail', 'Hiker/Mountain Bike Forest Service Trail'],
+        paint: { 'line-color': '#28a745', 'line-width': 3 }
+      });
 
-document.querySelectorAll('.legend-row').forEach(row => {
-  row.addEventListener('click', () => {
-    const layerId = row.dataset.layer;
-    const toggle = row.querySelector('.legend-toggle');
+      map.addLayer({
+        id: 'trails-horse',
+        type: 'line',
+        source: 'trails',
+        filter: ['==', ['get', 'Type2'], 'Hiker/Equestrian Forest Service Trail'],
+        paint: { 'line-color': '#a0522d', 'line-width': 2, 'line-offset': -2 }
+      });
 
-    const visibility = map.getLayoutProperty(layerId, 'visibility');
+      map.addLayer({
+        id: 'trails-bike',
+        type: 'line',
+        source: 'trails',
+        filter: ['==', ['get', 'Type2'], 'Hiker/Mountain Bike Forest Service Trail'],
+        paint: { 'line-color': '#ffc107', 'line-width': 2 }
+      });
 
-    if (visibility === 'none') {
-      map.setLayoutProperty(layerId, 'visibility', 'visible');
-      toggle.classList.add('on');
-    } else {
-      map.setLayoutProperty(layerId, 'visibility', 'none');
-      toggle.classList.remove('on');
-    }
-  });
-});
-      
-let routeMode = false;
-let routePoints = [];
-let routeMarkers = [];
+      map.addLayer({
+        id: 'mvum-forest-service',
+        type: 'line',
+        source: 'mvum',
+        filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'F'],
+        paint: { 'line-color': '#0000FF', 'line-width': 3 }
+      });
 
-map.addSource('planned-route', {
-  type: 'geojson',
-  data: {
-    type: 'Feature',
-    geometry: {
-      type: 'LineString',
-      coordinates: []
-    }
-  }
-});
+      map.addLayer({
+        id: 'mvum-county',
+        type: 'line',
+        source: 'mvum',
+        filter: ['==', ['slice', ['get', 'JURISDICTI'], 0, 1], 'C'],
+        paint: { 'line-color': '#DAA520', 'line-width': 3 }
+      });
 
-map.addLayer({
-  id: 'planned-route-line',
-  type: 'line',
-  source: 'planned-route',
-  paint: {
-    'line-color': '#ff0000',
-    'line-width': 4,
-    'line-dasharray': [2, 2]
-  }
-});
+      map.addSource('planned-route', {
+        type: 'geojson',
+        data: emptyLineFeature()
+      });
 
-document.getElementById('routeModeBtn').onclick = () => {
-  routeMode = !routeMode;
-  document.getElementById('routeModeBtn').innerText = routeMode ? 'Add Waypoints: On' : 'Add Waypoints: Off';
-};
+      map.addLayer({
+        id: 'planned-route-line',
+        type: 'line',
+        source: 'planned-route',
+        paint: {
+          'line-color': '#ff0000',
+          'line-width': 4,
+          'line-dasharray': [2, 2]
+        }
+      });
 
-document.getElementById('clearRouteBtn').onclick = () => {
-  routePoints = [];
-  routeMarkers.forEach(marker => marker.remove());
-  routeMarkers = [];
-  updateRouteLine();
-  updateRouteMiles();
-};
+      wireLayerToggles();
+      wireRouteControls();
 
-map.on('click', (e) => {
-  if (!routeMode) return;
+      await buildMasterRoutingGraph();
 
-  const point = [e.lngLat.lng, e.lngLat.lat];
-  routePoints.push(point);
-
-  const marker = new mapboxgl.Marker({ color: '#ff0000' })
-    .setLngLat(point)
-    .addTo(map);
-
-  routeMarkers.push(marker);
-
-  updateRouteLine();
-  updateRouteMiles();
-});
-
-function updateRouteLine() {
-  map.getSource('planned-route').setData({
-    type: 'Feature',
-    geometry: {
-      type: 'LineString',
-      coordinates: routePoints
-    }
-  });
-}
-
-function updateRouteMiles() {
-  let miles = 0;
-
-  for (let i = 1; i < routePoints.length; i++) {
-    miles += distanceInMiles(routePoints[i - 1], routePoints[i]);
-  }
-
-  document.getElementById('routeMiles').innerText = `Miles: ${miles.toFixed(1)}`;
-}
-
-function distanceInMiles(coord1, coord2) {
-  const R = 3958.8;
-  const lon1 = coord1[0] * Math.PI / 180;
-  const lat1 = coord1[1] * Math.PI / 180;
-  const lon2 = coord2[0] * Math.PI / 180;
-  const lat2 = coord2[1] * Math.PI / 180;
-
-  const dlon = lon2 - lon1;
-  const dlat = lat2 - lat1;
-
-  const a =
-    Math.sin(dlat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) *
-    Math.sin(dlon / 2) ** 2;
-
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-          
       fetch('https://api.openweathermap.org/data/2.5/weather?lat=37.5&lon=-88.688&appid=374a4a81fc726009ff89323415d557e5&units=imperial')
         .then(res => res.json())
         .then(data => {
           document.getElementById('weather').innerText = `${data.weather[0].main}, ${data.main.temp.toFixed(0)}°F`;
+        })
+        .catch(() => {
+          document.getElementById('weather').innerText = 'Unavailable';
         });
     });
+
+    function wireLayerToggles() {
+      document.querySelectorAll('.legend-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const layerId = row.dataset.layer;
+          const toggle = row.querySelector('.legend-toggle');
+          const visibility = map.getLayoutProperty(layerId, 'visibility');
+
+          if (visibility === 'none') {
+            map.setLayoutProperty(layerId, 'visibility', 'visible');
+            toggle.classList.add('on');
+          } else {
+            map.setLayoutProperty(layerId, 'visibility', 'none');
+            toggle.classList.remove('on');
+          }
+        });
+      });
+    }
+
+    function wireRouteControls() {
+      document.getElementById('routeModeBtn').onclick = () => {
+        waypointMode = !waypointMode;
+        document.getElementById('routeModeBtn').innerText = waypointMode ? 'Done Adding' : 'Add Waypoints';
+        routeStatusEl.innerText = waypointMode ? 'Tap map to add waypoints.' : 'Waypoint adding off.';
+      };
+
+      document.getElementById('calculateRouteBtn').onclick = () => {
+        calculateRoute();
+      };
+
+      document.getElementById('clearRouteBtn').onclick = () => {
+        clearRoute();
+      };
+
+      map.on('click', (e) => {
+        if (!waypointMode) return;
+
+        const clicked = [e.lngLat.lng, e.lngLat.lat];
+        const nearest = findNearestNode(clicked, getAllowedRouteClasses());
+
+        if (!nearest) {
+          routeStatusEl.innerText = 'No routable road found near that point.';
+          return;
+        }
+
+        addWaypoint(nearest.coord, clicked, nearest.distanceMiles);
+      });
+    }
+
+    async function buildMasterRoutingGraph() {
+      routeStatusEl.innerText = 'Loading routing files...';
+
+      const routingFiles = [
+        { url: '/data/MVUM.json', sourceType: 'mvum' },
+        { url: '/data/TrailsGeoJson.json', sourceType: 'trail' },
+        { url: '/data/osm-salem-roads.geojson', sourceType: 'osm' },
+        { url: '/data/osm-shawnee-roads.geojson', sourceType: 'osm' }
+      ];
+
+      const allFeatures = [];
+
+      for (const file of routingFiles) {
+        try {
+          const data = await fetch(file.url).then(res => {
+            if (!res.ok) throw new Error(`${file.url} ${res.status}`);
+            return res.json();
+          });
+
+          if (!data.features) continue;
+
+          data.features.forEach(feature => {
+            feature.properties = feature.properties || {};
+            feature.properties._routingSourceType = file.sourceType;
+            feature.properties._routingFile = file.url;
+            allFeatures.push(feature);
+          });
+        } catch (err) {
+          console.warn('Routing file failed:', file.url, err);
+        }
+      }
+
+      routingGraph = buildGraph(allFeatures);
+
+      graphStats = {
+        features: allFeatures.length,
+        nodes: routingGraph.nodeCount,
+        edges: routingGraph.edgeCount
+      };
+
+      console.log('Routing graph built:', routingGraph);
+
+      routeStatusEl.innerText = `Graph ready: ${graphStats.nodes} nodes, ${graphStats.edgeCount} edges.`;
+    }
+
+    function buildGraph(features) {
+      const nodes = {};
+      let edgeCount = 0;
+
+      features.forEach(feature => {
+        if (!feature.geometry) return;
+
+        if (feature.geometry.type === 'LineString') {
+          edgeCount += addLineToGraph(nodes, feature.geometry.coordinates, feature.properties);
+        }
+
+        if (feature.geometry.type === 'MultiLineString') {
+          feature.geometry.coordinates.forEach(line => {
+            edgeCount += addLineToGraph(nodes, line, feature.properties);
+          });
+        }
+      });
+
+      return {
+        nodes,
+        nodeCount: Object.keys(nodes).length,
+        edgeCount
+      };
+    }
+
+    function addLineToGraph(nodes, coords, properties) {
+      let addedEdges = 0;
+
+      if (!coords || coords.length < 2) return addedEdges;
+
+      for (let i = 1; i < coords.length; i++) {
+        const a = coords[i - 1];
+        const b = coords[i];
+
+        if (!isValidCoord(a) || !isValidCoord(b)) continue;
+
+        const aKey = coordKey(a);
+        const bKey = coordKey(b);
+
+        const miles = distanceInMiles(a, b);
+        if (!isFinite(miles) || miles <= 0) continue;
+
+        const roadType = getRoadType(properties);
+        const penalty = getRoadPenalty(roadType);
+        const cost = miles * penalty;
+
+        if (!nodes[aKey]) nodes[aKey] = { key: aKey, coord: a, edges: [] };
+        if (!nodes[bKey]) nodes[bKey] = { key: bKey, coord: b, edges: [] };
+
+        nodes[aKey].edges.push({
+          to: bKey,
+          miles,
+          cost,
+          roadType,
+          coordinates: [a, b],
+          properties
+        });
+
+        nodes[bKey].edges.push({
+          to: aKey,
+          miles,
+          cost,
+          roadType,
+          coordinates: [b, a],
+          properties
+        });
+
+        addedEdges += 2;
+      }
+
+      return addedEdges;
+    }
+
+    function getRoadType(properties) {
+      const sourceType = properties._routingSourceType;
+
+      if (sourceType === 'mvum') {
+        const jurisdiction = properties.JURISDICTI || properties.JURISDICTION || '';
+
+        if (String(jurisdiction).startsWith('F')) return 'forest';
+        if (String(jurisdiction).startsWith('C')) return 'county-mvum';
+
+        return 'mvum-other';
+      }
+
+      if (sourceType === 'trail') {
+        const type2 = properties.Type2 || '';
+
+        if (type2 === 'Hiker/Equestrian Forest Service Trail') return 'horse-trail';
+        if (type2 === 'Hiker/Mountain Bike Forest Service Trail') return 'bike-trail';
+        if (
+          type2 === 'Hiker Only Forest Service Trail' ||
+          type2 === 'Hiker/Equestrian Forest Service Trail' ||
+          type2 === 'Hiker/Mountain Bike Forest Service Trail'
+        ) return 'hiker-trail';
+
+        return 'trail-other';
+      }
+
+      if (sourceType === 'osm') {
+        const highway = properties.highway || '';
+
+        if (['motorway', 'motorway_link', 'trunk', 'trunk_link'].includes(highway)) return 'major-highway';
+        if (['primary', 'primary_link', 'secondary', 'secondary_link'].includes(highway)) return 'state-highway';
+        if (['tertiary', 'tertiary_link', 'unclassified', 'residential', 'living_street'].includes(highway)) return 'local-road';
+        if (['service', 'track'].includes(highway)) return 'service-track';
+
+        return 'osm-other';
+      }
+
+      return 'unknown';
+    }
+
+    function getRoadPenalty(roadType) {
+      const penalties = {
+        'forest': 1.0,
+        'county-mvum': 1.2,
+        'mvum-other': 1.5,
+        'horse-trail': 1.0,
+        'bike-trail': 1.2,
+        'hiker-trail': 2.0,
+        'trail-other': 3.0,
+        'service-track': 1.5,
+        'local-road': 1.8,
+        'state-highway': 3.0,
+        'major-highway': 8.0,
+        'osm-other': 3.0,
+        'unknown': 5.0
+      };
+
+      return penalties[roadType] || 5.0;
+    }
+
+    function getAllowedRouteClasses() {
+      return {
+        'forest': isLayerVisible('mvum-forest-service'),
+        'county-mvum': isLayerVisible('mvum-county'),
+        'mvum-other': isLayerVisible('mvum-forest-service') || isLayerVisible('mvum-county'),
+
+        'horse-trail': isLayerVisible('trails-horse'),
+        'bike-trail': isLayerVisible('trails-bike'),
+        'hiker-trail': isLayerVisible('trails-hiker'),
+        'trail-other': isLayerVisible('trails-hiker') || isLayerVisible('trails-bike') || isLayerVisible('trails-horse'),
+
+        // OSM is hidden routing data. Keep these always available for now.
+        'service-track': true,
+        'local-road': true,
+        'state-highway': true,
+        'major-highway': true,
+        'osm-other': true,
+        'unknown': false
+      };
+    }
+
+    function isLayerVisible(layerId) {
+      if (!map.getLayer(layerId)) return false;
+      return map.getLayoutProperty(layerId, 'visibility') !== 'none';
+    }
+
+    function findNearestNode(coord, allowed) {
+      if (!routingGraph || !routingGraph.nodes) return null;
+
+      let best = null;
+
+      for (const key in routingGraph.nodes) {
+        const node = routingGraph.nodes[key];
+
+        const hasAllowedEdge = node.edges.some(edge => allowed[edge.roadType]);
+        if (!hasAllowedEdge) continue;
+
+        const miles = distanceInMiles(coord, node.coord);
+
+        if (!best || miles < best.distanceMiles) {
+          best = {
+            key,
+            coord: node.coord,
+            distanceMiles: miles
+          };
+        }
+      }
+
+      return best;
+    }
+
+    function addWaypoint(snappedCoord, clickedCoord, snapDistanceMiles) {
+      const waypointNumber = waypoints.length + 1;
+      const key = coordKey(snappedCoord);
+
+      const marker = new mapboxgl.Marker({ color: '#ff0000' })
+        .setLngLat(snappedCoord)
+        .setPopup(new mapboxgl.Popup().setText(`Waypoint ${waypointNumber}`))
+        .addTo(map);
+
+      waypoints.push({
+        key,
+        coord: snappedCoord,
+        clickedCoord,
+        snapDistanceMiles
+      });
+
+      waypointMarkers.push(marker);
+      updateWaypointCount();
+
+      routeStatusEl.innerText = `Waypoint ${waypointNumber} added. Snap distance: ${(snapDistanceMiles * 5280).toFixed(0)} ft.`;
+    }
+
+    function calculateRoute() {
+      if (!routingGraph) {
+        routeStatusEl.innerText = 'Routing graph is not ready yet.';
+        return;
+      }
+
+      if (waypoints.length < 2) {
+        routeStatusEl.innerText = 'Add at least 2 waypoints.';
+        return;
+      }
+
+      const allowed = getAllowedRouteClasses();
+      let fullRouteCoords = [];
+      let totalMiles = 0;
+      let failedLeg = null;
+
+      routeStatusEl.innerText = 'Calculating route...';
+
+      for (let i = 1; i < waypoints.length; i++) {
+        const startKey = waypoints[i - 1].key;
+        const endKey = waypoints[i].key;
+
+        const result = dijkstra(startKey, endKey, allowed);
+
+        if (!result) {
+          failedLeg = `${i} → ${i + 1}`;
+          break;
+        }
+
+        totalMiles += result.miles;
+
+        if (fullRouteCoords.length === 0) {
+          fullRouteCoords = result.coordinates;
+        } else {
+          fullRouteCoords = fullRouteCoords.concat(result.coordinates.slice(1));
+        }
+      }
+
+      if (failedLeg) {
+        routeStatusEl.innerText = `No route found for waypoint ${failedLeg}. Try enabling more layers.`;
+        drawRoute([]);
+        routeMilesEl.innerText = 'Miles: 0.0';
+        return;
+      }
+
+      drawRoute(fullRouteCoords);
+      routeMilesEl.innerText = `Miles: ${totalMiles.toFixed(1)}`;
+      routeStatusEl.innerText = `Calculated route using active routing layers.`;
+      waypointMode = false;
+      document.getElementById('routeModeBtn').innerText = 'Edit / Add Waypoints';
+    }
+
+    function dijkstra(startKey, endKey, allowed) {
+      const nodes = routingGraph.nodes;
+      if (!nodes[startKey] || !nodes[endKey]) return null;
+
+      const distances = {};
+      const previous = {};
+      const visited = new Set();
+      const queue = new MinPriorityQueue();
+
+      distances[startKey] = 0;
+      queue.enqueue(startKey, 0);
+
+      while (!queue.isEmpty()) {
+        const currentKey = queue.dequeue();
+
+        if (visited.has(currentKey)) continue;
+        visited.add(currentKey);
+
+        if (currentKey === endKey) break;
+
+        const currentNode = nodes[currentKey];
+        if (!currentNode) continue;
+
+        for (const edge of currentNode.edges) {
+          if (!allowed[edge.roadType]) continue;
+
+          const nextKey = edge.to;
+          if (visited.has(nextKey)) continue;
+
+          const newDistance = distances[currentKey] + edge.cost;
+
+          if (distances[nextKey] === undefined || newDistance < distances[nextKey]) {
+            distances[nextKey] = newDistance;
+            previous[nextKey] = {
+              from: currentKey,
+              edge
+            };
+            queue.enqueue(nextKey, newDistance);
+          }
+        }
+      }
+
+      if (!previous[endKey] && startKey !== endKey) return null;
+
+      const pathEdges = [];
+      let current = endKey;
+
+      while (current !== startKey) {
+        const prev = previous[current];
+        if (!prev) return null;
+
+        pathEdges.push(prev.edge);
+        current = prev.from;
+      }
+
+      pathEdges.reverse();
+
+      let coordinates = [];
+      let miles = 0;
+
+      pathEdges.forEach((edge, index) => {
+        miles += edge.miles;
+
+        if (index === 0) {
+          coordinates = coordinates.concat(edge.coordinates);
+        } else {
+          coordinates = coordinates.concat(edge.coordinates.slice(1));
+        }
+      });
+
+      return {
+        coordinates,
+        miles
+      };
+    }
+
+    class MinPriorityQueue {
+      constructor() {
+        this.items = [];
+      }
+
+      enqueue(value, priority) {
+        this.items.push({ value, priority });
+        this.bubbleUp(this.items.length - 1);
+      }
+
+      dequeue() {
+        if (this.items.length === 0) return null;
+        if (this.items.length === 1) return this.items.pop().value;
+
+        const min = this.items[0].value;
+        this.items[0] = this.items.pop();
+        this.bubbleDown(0);
+        return min;
+      }
+
+      isEmpty() {
+        return this.items.length === 0;
+      }
+
+      bubbleUp(index) {
+        while (index > 0) {
+          const parent = Math.floor((index - 1) / 2);
+          if (this.items[parent].priority <= this.items[index].priority) break;
+
+          [this.items[parent], this.items[index]] = [this.items[index], this.items[parent]];
+          index = parent;
+        }
+      }
+
+      bubbleDown(index) {
+        const length = this.items.length;
+
+        while (true) {
+          let smallest = index;
+          const left = index * 2 + 1;
+          const right = index * 2 + 2;
+
+          if (left < length && this.items[left].priority < this.items[smallest].priority) {
+            smallest = left;
+          }
+
+          if (right < length && this.items[right].priority < this.items[smallest].priority) {
+            smallest = right;
+          }
+
+          if (smallest === index) break;
+
+          [this.items[index], this.items[smallest]] = [this.items[smallest], this.items[index]];
+          index = smallest;
+        }
+      }
+    }
+
+    function clearRoute() {
+      waypoints = [];
+
+      waypointMarkers.forEach(marker => marker.remove());
+      waypointMarkers = [];
+
+      drawRoute([]);
+      routeMilesEl.innerText = 'Miles: 0.0';
+      updateWaypointCount();
+      routeStatusEl.innerText = 'Route cleared.';
+      waypointMode = false;
+      document.getElementById('routeModeBtn').innerText = 'Add Waypoints';
+    }
+
+    function drawRoute(coordinates) {
+      map.getSource('planned-route').setData({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates
+        },
+        properties: {}
+      });
+    }
+
+    function updateWaypointCount() {
+      waypointCountEl.innerText = `Waypoints: ${waypoints.length}`;
+    }
+
+    function emptyLineFeature() {
+      return {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: []
+        },
+        properties: {}
+      };
+    }
+
+    function coordKey(coord) {
+      return `${coord[0].toFixed(6)},${coord[1].toFixed(6)}`;
+    }
+
+    function isValidCoord(coord) {
+      return Array.isArray(coord) &&
+        coord.length >= 2 &&
+        isFinite(coord[0]) &&
+        isFinite(coord[1]);
+    }
+
+    function distanceInMiles(coord1, coord2) {
+      const R = 3958.8;
+      const lon1 = coord1[0] * Math.PI / 180;
+      const lat1 = coord1[1] * Math.PI / 180;
+      const lon2 = coord2[0] * Math.PI / 180;
+      const lat2 = coord2[1] * Math.PI / 180;
+
+      const dlon = lon2 - lon1;
+      const dlat = lat2 - lat1;
+
+      const a =
+        Math.sin(dlat / 2) ** 2 +
+        Math.cos(lat1) * Math.cos(lat2) *
+        Math.sin(dlon / 2) ** 2;
+
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
   </script>
 </body>
 </html>
